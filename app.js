@@ -2,28 +2,34 @@ var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
-var logger = require('morgan');
 
-var indexRouter = require('./routes/index');
+var loginRouter = require('./routes/login');
 var usersRouter = require('./routes/users');
+var controllerRouter = require('./routes/controller');
 
-var daemon = require('./daemon')
 var app = express();
 
-daemon();
+var log4js = require('log4js');
+
+//setup log4js
+var logConfigPath = './config/log4js.json';
+let logConfig = require(logConfigPath);
+log4js.configure(logConfig);
+var logger = log4js.getLogger();
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
-app.use(logger('dev'));
+app.use(log4js.connectLogger(log4js.getLogger("http"), { level: 'auto' }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', indexRouter);
+app.use('/', loginRouter);
 app.use('/users', usersRouter);
+app.use('/controller', controllerRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

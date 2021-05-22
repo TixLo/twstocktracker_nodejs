@@ -1,0 +1,57 @@
+{
+    "appenders": {
+      "access": {
+        "type": "dateFile",
+        "filename": "log/access.log",
+        "pattern": "-yyyy-MM-dd",
+        "category": "http"
+      },
+      "app": {
+        "type": "file",
+        "level": "all",
+        "filename": "log/app.log",
+        "maxLogSize": 10485760,
+        "numBackups": 3
+      },
+      "std": {
+          "type": "stdout",
+          "level": "all"
+      }
+    },
+    "categories": {
+      "default": { 
+          "appenders": [ 
+              "std", 
+              "app" 
+          ], 
+          "level": "DEBUG" 
+       },
+      "TWSE": { 
+          "appenders": [ 
+              "std", 
+              "app" 
+          ], 
+          "level": "DEBUG" 
+       },
+      "TWSEWorker": { 
+          "appenders": [ 
+              "std", 
+              "app" 
+          ], 
+          "level": "DEBUG" 
+       },
+      "DB": { 
+          "appenders": [ 
+              "std", 
+              "app" 
+          ], 
+          "level": "DEBUG" 
+       },
+      "http": { 
+          "appenders": [ 
+               "access"
+          ], 
+          "level": "DEBUG" 
+      }
+    }
+  }
