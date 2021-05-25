@@ -40,6 +40,27 @@
           ], 
           "level": "DEBUG" 
        },
+      "TWSEHistoryWorker": { 
+          "appenders": [ 
+              "std", 
+              "app" 
+          ], 
+          "level": "DEBUG" 
+       },
+      "stock": { 
+          "appenders": [ 
+              "std", 
+              "app" 
+          ], 
+          "level": "DEBUG" 
+       },
+      "cookies": { 
+          "appenders": [ 
+              "std", 
+              "app" 
+          ], 
+          "level": "DEBUG" 
+       },
       "DB": { 
           "appenders": [ 
               "std", 

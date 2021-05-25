@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<style>
+    .select,
+#locale {
+    width: 100%;
+}
+
+.like {
+    margin-right: 10px;
+}
+</style>
+
+<head>
+    <meta charset="UTF-8">
+    <title>股票管理</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link href="https://unpkg.com/bootstrap-table@1.18.3/dist/bootstrap-table.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="modal fade" id="confirmErroorModal" tabindex="-1" role="dialog" aria-labelledby="confirmErroorModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmErroorModalLabel">通知</h5>
+                </div>
+                <div class="modal-body">
+                    <label id="errMsg"></label>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br>
+    <div class="input-group text-center">
+        <label for="inputStockId" class="align-items-center col-sm-1">股票代號</label>
+        <div class="col-sm-4">
+            <input type="text" class="form-control" id="inputStockId" placeholder="請輸入股票代號">
+        </div>
+        <select class="selectpicker">
+            <option value='TYPE1'>上市</option>
+        </select>
+        &nbsp;&nbsp;
+        <input type="button" id="addStock" value="新增" class="btn btn-primary" />
+        <button class="btn btn-light" id="addStockLoading" type="button" disabled hidden>
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            新增中...
+        </button>
+    </div>
+    <hr>
+    <table class="table align-middle">
+        <tbody>
+            <tr>
+                <td width="190px">
+                    <label class="text-dark">股票歷史資料下載進度</label>
+                </td>
+                <td>
+                    <div class="progress" style="height: 26px;">
+                        <div class="progress-bar progress-bar-striped bg-info progress-bar-animated active" role="progressbar" id="stockProgressBar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table 
+        id="queuedStocks" 
+        data-toggle="table" 
+        data-search="true"
+        data-pagination="true" 
+        data-thead-classes="table-info"
+        data-page-list="[10, 25, 50, All]"> 
+        <thead>
+            <tr>
+                <th data-field="id">#</th>
+                <th data-field="stock" data-sortable="true">股票代號</th>
+                <th data-field="name" data-sortable="true">股票名稱</th>
+                <th data-field="status" data-sortable="true">狀態</th>
+            </tr>
+        </thead>
+    </table>
+    <hr>
+    <label class="text-dark">選取想要監控的股票(最多10筆), 選擇好之後點選"確認":</label>
+    <input type="button" id="confirmStocks" value="確認" class="btn btn-primary" />
+    <br>
+    <label class="text-dark">目前可使用的股票資料如下:</label>
+    <table 
+        id="savedStocks" 
+        data-toggle="table" 
+        data-search="true"
+        data-pagination="true" 
+        data-thead-classes="table-info"
+        data-page-list="[10, 25, 50, All]"> 
+        <thead>
+            <tr>
+                <th data-checkbox="true"></th>
+                <th data-field="id">#</th>
+                <th data-field="stock" data-sortable="true">股票代號</th>
+                <th data-field="name" data-sortable="true">股票名稱</th>
+                <th data-field="count" data-sortable="true">資料筆數</th>
+                <th data-field="type" data-sortable="true">種類</th>
+            </tr>
+        </thead>
+    </table>
+</body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://unpkg.com/bootstrap-table@1.18.3/dist/bootstrap-table.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+<script>
+
+var maxMonitoredStocks = <%= maxMonitoredStocks %>;
+var socket;
+
+function updateSavedTable(code) {
+    $('#savedStocks').bootstrapTable('refresh', {
+        url: '/stock/warehouse/stocks'
+    });
+}
+
+function updateQueuedTable(code) {
+    $('#queuedStocks').bootstrapTable('refresh', {
+        url: '/stock/warehouse/queuedStockData'
+    });
+}
+
+$('#confirmStocks').click(function() {
+    console.log('click');
+    let monitorStocks = [];
+    $('#savedStocks > tbody  > tr').each(function(){
+        if ($(this).attr('class') != undefined && $(this).attr('class').indexOf('selected') >= 0) {
+            let stockId = $(this).find('td').slice(2,3).text();
+            monitorStocks.push(stockId);
+        }
+    });
+
+    if (monitorStocks.length > maxMonitoredStocks) {
+        $('#errMsg').text('選取超過 <%= maxMonitoredStocks %> 筆的股票資');
+        $('#confirmErroorModal').modal('show');
+    }
+});
+
+$("#addStock").click(function() {
+    let stockId = $('#inputStockId').val();
+    let selectedItem = $('.selectpicker').val();
+    console.log('select: ' + selectedItem);
+    console.log('add: ' + stockId);
+
+    let data = {
+        stock: stockId,
+        type: selectedItem
+    };
+
+    socket.emit('addStock', data);
+    $('#addStock').attr('disabled', true);
+    $('#inputStockId').attr('disabled', true);
+    $('.selectpicker').attr('disabled', true);
+    $('#addStockLoading').attr('hidden', false);
+})
+
+// test
+var progress = 0;
+var updateQueuedCB = function() {
+    if (progress < 100)
+        progress += 10;
+    else if (progress >= 100)
+        progress = 100;
+
+    $('#stockProgressBar').css('width', progress + '%');
+    $('#stockProgressBar').text(progress + '%');
+    updateQueuedTable();
+
+    if (progress < 100)
+        setTimeout(updateQueuedCB, 1000);
+}
+
+$(function() {
+    updateSavedTable();
+    updateQueuedTable();
+
+    //test
+    //updateQueuedCB();
+
+    socket = io.connect();
+    socket.on('addStockResult', function(data) {
+        var json = JSON.parse(data);
+        if (json.status != 'OK') {
+            $('#errMsg').text('新增失敗. 目前只支援上市櫃公司的股票. 也可能是股票代號錯誤');
+        }
+        else {
+            $('#errMsg').text('新增成功');
+        }
+        $('#confirmErroorModal').modal('show');
+        $('#addStock').attr('disabled', false);
+        $('#inputStockId').attr('disabled', false);
+        $('.selectpicker').attr('disabled', false);
+        $('#addStockLoading').attr('hidden', true);
+    });
+
+    socket.on('updateQueuedTable', function(data) {
+        var json = JSON.parse(data);
+        if (json.total != undefined) {
+            var progress = (json.completed * 100) / json.total;
+            $('#stockProgressBar').css('width', progress + '%');
+            $('#stockProgressBar').text(json.stock + ' - ' + progress + '%');
+        }
+        else {
+            $('#stockProgressBar').css('100%');
+            $('#stockProgressBar').text();
+        }
+        updateQueuedTable();
+    });
+})
+</script>
+
+</html>

@@ -36,12 +36,12 @@ var exec = function(sql, values) {
     })
 }
 
-var addUser = async function(username, email) {
+var addUser = async function(username, password, email) {
     var sql = "INSERT INTO " 
             + "tracker (" 
-            + "tracker_user, tracker_email"
+            + "tracker_user, tracker_passwd, tracker_email"
             + ") VALUES ("
-            + "'" + username + "', '" + email + "'"
+            + "'" + username + "', '" + password + "', ' " + email + "'"
             + ")";
     return await exec(sql);
 }

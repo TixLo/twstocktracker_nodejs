@@ -4,6 +4,7 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 
 var loginRouter = require('./routes/login');
+var stockRouter = require('./routes/stock');
 var usersRouter = require('./routes/users');
 var controllerRouter = require('./routes/controller');
 
@@ -30,8 +31,10 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', loginRouter);
+app.use('/stock', stockRouter);
 app.use('/users', usersRouter);
 app.use('/controller', controllerRouter);
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
