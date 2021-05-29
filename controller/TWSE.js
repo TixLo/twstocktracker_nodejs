@@ -2,6 +2,8 @@ const { Worker } = require('worker_threads');
 const path = require('path');
 const fetchWorker = new Worker('./controller/TWSEFetchWorker.js');
 const fetchHistoryWorker = new Worker('./controller/TWSEFetchHistoryWorker.js');
+var stockdb = require('./stockdb.js');
+var stocksTable = require('../controller/StocksTable.js');
 var conn = require('../routes/conn');
 
 var logger = require('log4js').getLogger('TWSE');
@@ -10,36 +12,33 @@ var TWSEFetch = require('./TWSEFetch.js');
 var historyDict = [
 ];
 
-var processTestFetch = function(message) {
-    logger.info('processTestFetch');
-    logger.info(historyDict);
-    for (let i=0 ; i<historyDict.length ; i++) {
-        if (message.stock == historyDict[i].stock) {
-            if (message.legal == true) {
-                historyDict[i].testing = false;
-                conn.addStockResult(historyDict[i].socket, 'OK');
-            }
-            else {
-                conn.addStockResult(historyDict[i].socket, 'Not Supported');
-                historyDict.splice(i, 1);
-            }
-            break;
-        }
-    }
-}
-
 var processHistoryFetch = function(message) {
+    let currStock = '';
+    let currStockName = '';
+    let currCompleted = 0;
+    let currTotal = 0;
     for (let i=0 ; i<historyDict.length ; i++) {
         if (message.stock == historyDict[i].stock) {
+            currStock = message.stock;
+            currStockName = message.name;
+            currCompleted = message.curr;
+            currTotal = message.total;
             if (message.finish == true) {
                 historyDict.splice(i, 1);
+                conn.broadcast('updateSavedTable', {});
             }
-            else
-                historyDict[i].status = message.curr + '/' + message.total;
+            else {
+                //historyDict[i].status = message.curr + '/' + message.total;
+                let percentage = (message.curr * 100) / message.total;
+                historyDict[i].status = '抓取進度 ' + percentage + '%';
+            }
         }
     }
     conn.broadcast('updateQueuedTable', {
-        completed: message.curr, total: message.total, stock: message.stock
+        completed: currCompleted,
+        total: currTotal,
+        stock: currStock,
+        name: currStockName
     });
 }
 
@@ -50,15 +49,8 @@ fetchWorker.on('message', (message) => {
 
 fetchHistoryWorker.on('message', (message) => {
     logger.info('fetchHistoryWorker message');
-    logger.info(message);
-    if (message.testFetch != undefined) {
-        processTestFetch(message);
-    }
-    else {
-        processHistoryFetch(message);
-    }
-
-
+    //logger.info(message);
+    processHistoryFetch(message);
 });
 
 module.exports.getCurrMonth = function(stockId, async = false) {
@@ -95,22 +87,46 @@ module.exports.getHistory = function(stockId, async = false) {
     }
 }
 
-module.exports.pushFetchStock = function(socket, stock, type) {
+module.exports.pushFetchStock = async function(socket, stock, type) {
     let duplicated = false;
-    historyDict.forEach(function(item){
+    for (let i=0 ; i<historyDict.length ; i++) {
+        let item = historyDict[i];
         if (item.stock == stock) {
             duplicated = true;
             logger.info('duplicated stock');
         }
-    });
+    }
 
-    if (duplicated)
+    if (duplicated) {
+        conn.addStockResult(socket, 'duplicated');
         return false;
+    }
 
+    let savedStock = await stockdb.querySavedStock(stock);
+    if (savedStock.data != undefined) {
+        conn.addStockResult(socket, 'existed');
+        return false;
+    }
+
+    stocksTable.init();
+    var tbl = stocksTable.get();
+    if (tbl[stock] != undefined) {
+        conn.addStockResult(socket, 'OK');
+    }
+    else {
+        conn.addStockResult(socket, 'illegal stock id');
+        return false;
+    }
     //logger.info(historyDict);
-    historyDict.push({socket: socket, stock: stock, type: type, status:' - ', testing: true});
+    historyDict.push({
+        socket: socket, 
+        stock: stock, 
+        name: tbl[stock],
+        type: type, 
+        status:'等待中...'
+    });
     fetchHistoryWorker.postMessage({
-        fetchTest: true, stock: stock, type: type
+        stock: stock, type: type
     });
     return true;
 }

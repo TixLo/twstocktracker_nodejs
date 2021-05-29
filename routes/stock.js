@@ -11,6 +11,13 @@ var redirect = function(res, url) {
     return res.end();
 }
 
+router.get('/admin/tix/warehouse', async function(req, res, next) {
+    res.render('warehouse', {
+        maxMonitoredStocks: 10,
+        username: 'ADMIN'
+    });
+});
+
 router.get('/warehouse', async function(req, res, next) {
     var ip = req.headers['x-forwarded-for'] ||
                 req.socket.remoteAddress ||
@@ -21,7 +28,8 @@ router.get('/warehouse', async function(req, res, next) {
         return;
     }
     res.render('warehouse', {
-        maxMonitoredStocks: 10
+        maxMonitoredStocks: 10,
+        username: req.cookies.profile.username
     });
 });
 
@@ -32,24 +40,17 @@ router.get('/warehouse/queuedStockData', async function(req, res, next) {
     }
 
     let historyDict = TWSE.getHistoryDict();
-logger.info(historyDict);
     let stocks = [];
     for (let i=0 ; i<historyDict.length ; i++) {
-        if (historyDict[i].testing == true)
-            continue;
         stocks.push({
             id: i+1,
             stock: historyDict[i].stock,
-            name: '--',
+            name: historyDict[i].name,
             status: historyDict[i].status
         });
     }
+    //logger.info(stocks);
 
-    //stocks.push({id: 1, stock: '2454', name: 'ABC',status: '100'});
-    //stocks.push({id: 2, stock: '2453', name: 'DDD',status: '100'});
-    //stocks.push({id: 3, stock: '2452', name: 'AAA',status: '100'});
-    //stocks.push({id: 4, stock: '2451', name: 'CCC',status: '100'});
-    //stocks.push({id: 5, stock: '2450', name: 'CBA',status: '100'});
     let data = {};
     data.rows = stocks;
     res.set({ 'content-type': 'application/json; charset=utf-8' });
@@ -63,13 +64,27 @@ router.get('/warehouse/stocks', async function(req, res, next) {
     }
 
     let stocks = [];
-    stocks.push({id: 1, stock: '2454', name: 'ABC', count: 1234, type:'上市'});
-    stocks.push({id: 2, stock: '2453', name: 'ABC', count: 1234, type:'上市'});
-    stocks.push({id: 3, stock: '2452', name: 'ABC', count: 1234, type:'上市'});
-    stocks.push({id: 4, stock: '2451', name: 'ABC', count: 1234, type:'上市'});
+    let allStocks = await stockdb.getAllStock();
+    if (allStocks.data != undefined) {
+        for (let i=0 ; i<allStocks.data.length ; i++) {
+            let item = allStocks.data[i];
+            logger.info(item);
+            let d = await stockdb.getStockCountByDbId(item.stock_id);
+            logger.info(d);
+            stocks.push({
+                id: i+1, 
+                stock: item.stock_no, 
+                name: item.stock_name, 
+                count: d.data[0].COUNT, 
+                type:item.stock_type,
+                stock_db_id: item.stock_id});
+        }
+    }
+
     let data = {};
     data.rows = stocks;
     res.set({ 'content-type': 'application/json; charset=utf-8' });
+    logger.info(data);
     res.end(JSON.stringify(data));
 });
 

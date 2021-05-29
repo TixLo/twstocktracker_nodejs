@@ -1,0 +1,21 @@
+<div class="bg-dark d-flex justify-content-between">
+    <div class="p-2">
+        <span class="p-0 text-light" style="font-size: 18px;">同時在線人數:</span>
+        <span id="totalOnline" class="p-0 text-light" style="font-size: 20px;"></span>
+    </div>
+    <div class="p-2">
+        <span class="p-0 text-light" style="font-size: 18px;">帳號:</span>
+        <span id="username" class="p-0 text-light" style="font-size: 20px;"><%= username %></span>
+        <input type="button" id="logoutAction" value="登出" class="btn btn-info" />
+    </div>
+</div>
+
+<script>
+$('#logoutAction').click(function(){
+    window.location.href = "/logout"
+});
+
+var updateOnline = function(json) {
+    $('#totalOnline').text(json.count);
+}
+</script>

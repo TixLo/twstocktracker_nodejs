@@ -34,6 +34,15 @@ router.get('/login', async function(req, res, next) {
     res.render('login');
 });
 
+router.get('/logout', async function(req, res, next) {
+    var ip = req.headers['x-forwarded-for'] ||
+                req.socket.remoteAddress ||
+                null;
+    logger.info('logout from ' + ip);
+    res.clearCookie('profile');
+    res.render('login');
+});
+
 router.get('/registry', function(req, res, next) {
     var ip = req.headers['x-forwarded-for'] ||
                 req.socket.remoteAddress ||
@@ -54,18 +63,18 @@ router.get('/monitor', async function(req, res, next) {
     res.render('monitor');
 });
 
-router.post('/tracker', async function(req, res) {
-    logger.info('tracker');
+router.post('/dologin', async function(req, res) {
+    logger.info('dologin');
     logger.info(req.body);
     if (req.body.username == undefined || 
         req.body.password == undefined) {
-        res.render('loginFailure');
+        res.render('loginFailure', {msg: '不合法的帳號密碼,請重新登入或註'});
         return;
     }
 
     if (req.body.username.length == 0 ||
         req.body.password.length == 0) {
-        res.render('loginFailure');
+        res.render('loginFailure', {msg: '不合法的帳號密碼,請重新登入或註'});
         return;
     }
 
@@ -93,14 +102,19 @@ router.post('/doregistry', async function(req, res) {
     if (req.body.username == undefined || 
         req.body.password == undefined ||
         req.body.email == undefined) {
-        res.render('loginFailure');
+        res.render('loginFailure', {msg: '註冊資料沒有填寫完整'});
         return;
     }
 
     if (req.body.username.length == 0 ||
         req.body.password.length == 0 ||
         req.body.email.length == 0) {
-        res.render('loginFailure');
+        res.render('loginFailure', {msg: '註冊資料沒有填寫完整'});
+        return;
+    }
+
+    if (req.body.password != req.body.password2) {
+        res.render('loginFailure', {msg: '密碼不一致'});
         return;
     }
 

@@ -18,6 +18,12 @@ var get = function(date, stockId) {
         logger.info('fetch Done');
         if (json != undefined && json.stat != 'OK')
             return undefined;
+
+        if (json.title == undefined)
+            return undefined;
+
+        json.name = json.title.split(' ')[2];
+        json.stockId = stockId;
         return json;
      }
     catch (e) {
@@ -65,42 +71,18 @@ var getHistoryDate = function() {
 }
 
 var getHistory = function(stockId, stepCB = undefined) {
-    var todayDate = new Date();
-    var mmStr = String(todayDate.getMonth() + 1).padStart(2, '0');
-    var yyyyStr = todayDate.getFullYear();
-
-    var allDate = getHistoryDate();
-    var total = allDate.length;
-    var curr = 0;
-    var stockArray = [];
-    var mm = Number(mmStr);
-    var yyyy = Number(yyyyStr);
-    do {
-        //fetch --
-        curr++;
-        var stockDate = yyyy.toString();
-        if (mm < 10)
-            stockDate += '0' + mm.toString() + '01';
-        else
-            stockDate += mm.toString() + '01';
-        //logger.info('stockDate: ' + stockDate);
+    let allDates = getHistoryDate();
+    let stockArray = [];
+    for (let curr=0 ; curr<allDates.length ; curr++) {
+        let stockDate = allDates[curr];
         var stock = get(stockDate, stockId);
         if (stepCB != undefined) {
-            stepCB(stockDate, stockId, stock, curr, total);
+            stepCB(stock, curr + 1, allDates.length);
         }
         if (stock != undefined)
             stockArray.push(stock);
+    }
 
-        if (yyyy == historyEndYYYY && mm == historyEndMM) {
-            break;
-        }
-
-        mm--;
-        if (mm < 0) {
-            yyyy--;
-            mm = 12;
-        }
-    }while(true);
     return stockArray;
 }
 
