@@ -14,7 +14,7 @@ var pool = mysql.createPool({
 var connected = false;
 
 var exec = function(sql, values) {
-    //logger.info('exec: ' + sql);
+    logger.info('exec: ' + sql);
     return new Promise(( resolve, reject ) => {
         pool.getConnection(function(err, connection) {
             if (err) {
@@ -131,6 +131,31 @@ var getAllStock = async function() {
 var getStockCountByDbId = async function(stockDbId) {
     let sql = "SELECT COUNT(*) FROM stock_day WHERE stock_id='{0}'";
     sql = sql.format(stockDbId);
+    return await exec(sql);
+}
+
+var delStock = async function(stockNo) {
+    let stock = await getStock(stockNo);
+    if (stock.data == undefined)
+        return;
+
+    logger.info('delStock');
+    logger.info(stock);
+
+    // remove stock data
+    let sql = "DELETE FROM stock WHERE stock_id={0}";
+    sql = sql.format(stock.data[0].stock_id);
+    await exec(sql);
+
+    // rmove all stock_day data
+    sql = "DELETE FROM stock_day WHERE stock_id={0}";
+    sql = sql.format(stock.data[0].stock_id);
+    return await exec(sql);
+}
+
+var delAllStockDay = async function() {
+    // rmove all stock_day data
+    let sql = "DELETE FROM stock_day WHERE 1";
     return await exec(sql);
 }
 
@@ -263,3 +288,5 @@ module.exports.getStock = getStock;
 module.exports.getAllStock = getAllStock;
 module.exports.getStockCountByDbId = getStockCountByDbId;
 module.exports.querySavedStock = querySavedStock;
+module.exports.delStock = delStock;
+module.exports.delAllStockDay = delAllStockDay;

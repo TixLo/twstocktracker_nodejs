@@ -1,5 +1,6 @@
 var logger = require('log4js').getLogger('conn');
 var TWSE = require('../controller/TWSE');
+var stockdb = require('../controller/stockdb');
 
 var io = undefined;
 
@@ -77,6 +78,40 @@ var hi = function(socket, data) {
     }
 }
 
+var deleteSavedStock = async function(socket, data) {
+    logger.info(data);
+    if (data.length > 0) {
+        for (let i=0 ; i<data.length ; i++) {
+            await stockdb.delStock(data[i]);
+        }
+        broadcast('updateSavedTable', {});
+    }
+    socket.emit('delSavedStockConfirm', {});
+}
+
+var refreshAllStock = async function(socket) {
+    // 1. remove all stock_day
+    await stockdb.delAllStockDay();
+    logger.info('remove all');
+
+    // 2. update all client's savedTable
+    broadcast('updateSavedTable', {});
+
+    // 3. retrigger fetch process for each stock
+    let allStocks = await stockdb.getAllStock();
+    logger.info(allStocks);
+    if (allStocks.data != undefined) {
+        for (let i=0 ; i<allStocks.data.length ; i++) {
+            logger.info(allStocks.data[i]);
+            let type = '';
+            if (allStocks.data[i].stock_type == '上市')
+                type = 'TYPE1';
+            TWSE.pushFetchStockWithoutChecking(
+                socket, allStocks.data[i].stock_no, type);
+        }
+    }
+}
+
 module.exports.init = init;
 module.exports.broadcast = broadcast;
 module.exports.addStock = addStock;
@@ -84,3 +119,5 @@ module.exports.connect = connect;
 module.exports.disconnect = disconnect;
 module.exports.addStockResult = addStockResult;
 module.exports.hi = hi;
+module.exports.deleteSavedStock = deleteSavedStock;
+module.exports.refreshAllStock = refreshAllStock;

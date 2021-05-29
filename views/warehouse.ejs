@@ -1,19 +1,17 @@
 <!DOCTYPE html>
 <html>
 <style>
-.select,
-#locale {
-    width: 100%;
-}
-
-.like {
-    margin-right: 10px;
-}
+white-space: pre;
+white-space: pre-line;
 </style>
 
 <head>
     <meta charset="UTF-8">
+<% if (username == 'ADMIN') { %>
+    <title>股票管理 - 管理者!!!!</title>
+<% } else { %>
     <title>股票管理</title>
+<% } %>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link href="https://unpkg.com/bootstrap-table@1.18.3/dist/bootstrap-table.min.css" rel="stylesheet">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
@@ -25,6 +23,35 @@
 </head>
 
 <body>
+    <% if (username == 'ADMIN') { %>
+    <div class="modal fade" id="queryDelModal" tabindex="-1" role="dialog" aria-labelledby="queryDelModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <label id="queryDelMsg">確定要刪除以下股</label>
+                    <textarea class="form-control rounded-0" id="queryDelStocks" rows="6" readonly></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" data-dismiss="modal" id="delSavedStocksAction">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="refreshModal" tabindex="-1" role="dialog" aria-labelledby="refreshModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <label id="refreshMsg">確定要重新抓取所有股票歷史紀錄?</label>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" data-dismiss="modal" id="refreshStocksAction">Refresh ALL !</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <% } %>
     <div class="modal fade" id="confirmErroorModal" tabindex="-1" role="dialog" aria-labelledby="confirmErroorModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -96,6 +123,11 @@
     <input type="button" id="confirmStocks" value="確認" class="btn btn-dark" />
     <% if (username == 'ADMIN') { %>
         <input type="button" id="deleteStocks" value="刪除" class="btn btn-primary" />
+        <button class="btn btn-light" id="delStockLoading" type="button" disabled hidden>
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            刪除中...
+        </button>
+        <input type="button" id="refetchAllStocks" value="重新抓取" class="btn btn-primary" />
     <% } %>
     <br>
     <label class="text-dark">目前可使用的股票資料如下:</label>
@@ -213,8 +245,8 @@ var updateQueuedTableFunc = function(json) {
     if (json.total != undefined) {
         let progress = Math.round((json.completed * 100) / json.total);
         if (progress < 100) {
-            progressVal = 'width: ' + progress + '%';
-            progressText = json.name + '[' + json.stock + '] - ' + progress + '%';
+            progressVal = 'width: ' + progress.toFixed() + '%';
+            progressText = json.name + '[' + json.stock + '] - ' + progress.toFixed() + '%';
         }
     }
     $('#stockProgressBar').attr('style', progressVal);
@@ -235,19 +267,49 @@ $(function() {
     registryAddStockResultCB(addStockResultFunc);
     registryUpdateQueuedTableCB(updateQueuedTableFunc);
     registryUpdateSavedTableCB(updateSavedTableFunc);
+<% if (username == 'ADMIN') { %>
+    registryDelSavedStockConfirmCB(delSavedStockConfirmFunc);
+<% } %>
     socket = initSocketIO();
 })
 
 <% if (username == 'ADMIN') { %>
+var delSavedStockConfirmFunc = function() {
+    $('#delStockLoading').attr('hidden', true);
+    $('#deleteStocks').attr('disabled', false);
+}
+
+var delStocks = [];
 $('#deleteStocks').click(function() {
-    let monitorStocks = [];
+    delStocks = [];
+    let delMsg = '';
     $('#savedStocks > tbody  > tr').each(function(){
         if ($(this).attr('class') != undefined && $(this).attr('class').indexOf('selected') >= 0) {
             let stockId = $(this).find('td').slice(2,3).text();
-            monitorStocks.push(stockId);
+            let stockName = $(this).find('td').slice(3,4).text();
+            delStocks.push(stockId);
+            delMsg += stockName + '[' + stockId + ']\n';
         }
     });
-    console.log(monitorStocks);
+    if (delStocks.length == 0)
+        return;
+
+    $('#queryDelStocks').text(delMsg);
+    $('#queryDelModal').modal('show');
+});
+
+$('#delSavedStocksAction').click(function() {
+    socket.emit('deleteSavedStock', delStocks);
+    $('#delStockLoading').attr('hidden', false);
+    $('#deleteStocks').attr('disabled', true);
+});
+
+$('#refetchAllStocks').click(function() {
+    $('#refreshModal').modal('show');
+});
+
+$('#refreshStocksAction').click(function() {
+    socket.emit('refreshAllStock', delStocks);
 });
 <% } %>
 

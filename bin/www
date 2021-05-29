@@ -98,11 +98,23 @@ conn.init(io);
 
 io.sockets.on('connection', function(socket) {
     conn.connect(socket);
+    socket.on('hi', function(data) {
+        conn.hi(socket, data);
+    });   
+
     socket.on('addStock', function(data) {
         conn.addStock(socket, data);
     });   
 
     socket.on('disconnect', function(data) {
         conn.disconnect(socket);
+    });
+
+    socket.on('deleteSavedStock', function(data) {
+        conn.deleteSavedStock(socket, data);
+    });
+
+    socket.on('refreshAllStock', function(data) {
+        conn.refreshAllStock(socket);
     });
 });

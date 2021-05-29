@@ -30,7 +30,7 @@ var processHistoryFetch = function(message) {
             else {
                 //historyDict[i].status = message.curr + '/' + message.total;
                 let percentage = (message.curr * 100) / message.total;
-                historyDict[i].status = '抓取進度 ' + percentage + '%';
+                historyDict[i].status = '抓取進度 ' + percentage.toFixed() + '%';
             }
         }
     }
@@ -129,6 +129,26 @@ module.exports.pushFetchStock = async function(socket, stock, type) {
         stock: stock, type: type
     });
     return true;
+}
+
+module.exports.pushFetchStockWithoutChecking = async function(socket, stock, type) {
+    stocksTable.init();
+    var tbl = stocksTable.get();
+    if (tbl[stock] == undefined) {
+        return;
+    }
+    //logger.info(historyDict);
+    historyDict.push({
+        socket: socket, 
+        stock: stock, 
+        name: tbl[stock],
+        type: type, 
+        status:'等待中...'
+    });
+    fetchHistoryWorker.postMessage({
+        stock: stock, type: type
+    });
+    return;
 }
 
 module.exports.getHistoryDict = function() {

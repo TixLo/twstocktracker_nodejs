@@ -12,6 +12,7 @@ var redirect = function(res, url) {
 }
 
 router.get('/admin/tix/warehouse', async function(req, res, next) {
+    cookies.create(res, 'ADMIN');
     res.render('warehouse', {
         maxMonitoredStocks: 10,
         username: 'ADMIN'
@@ -68,9 +69,9 @@ router.get('/warehouse/stocks', async function(req, res, next) {
     if (allStocks.data != undefined) {
         for (let i=0 ; i<allStocks.data.length ; i++) {
             let item = allStocks.data[i];
-            logger.info(item);
+            //logger.info(item);
             let d = await stockdb.getStockCountByDbId(item.stock_id);
-            logger.info(d);
+            //logger.info(d);
             stocks.push({
                 id: i+1, 
                 stock: item.stock_no, 
@@ -84,7 +85,7 @@ router.get('/warehouse/stocks', async function(req, res, next) {
     let data = {};
     data.rows = stocks;
     res.set({ 'content-type': 'application/json; charset=utf-8' });
-    logger.info(data);
+    //logger.info(data);
     res.end(JSON.stringify(data));
 });
 
