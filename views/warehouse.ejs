@@ -1,8 +1,32 @@
 <!DOCTYPE html>
 <html>
 <style>
-white-space: pre;
-white-space: pre-line;
+.loader {
+    position: relative;
+    text-align: center;
+    margin: 15px auto 35px auto;
+    z-index: 9999;
+    display: block;
+    width: 80px;
+    height: 80px;
+    border: 10px solid rgba(0, 0, 0, .3);
+    border-radius: 50%;
+    border-top-color: #000;
+    animation: spin 1s ease-in-out infinite;
+    -webkit-animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to {
+        -webkit-transform: rotate(360deg);
+    }
+}
+
+@-webkit-keyframes spin {
+   . to {
+        -webkit-transform: rotate(360deg);
+    }
+}
 </style>
 
 <head>
@@ -24,11 +48,25 @@ white-space: pre-line;
 
 <body>
     <% if (username == 'ADMIN') { %>
+    <div class="modal fade" id="delUserModal" tabindex="-1" role="dialog" aria-labelledby="delUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <label id="delUserMsg">確定要刪除以下使用者</label>
+                    <textarea class="form-control rounded-0" id="delUsersMsg" rows="6" readonly></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" data-dismiss="modal" id="delUsersAction">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="modal fade" id="queryDelModal" tabindex="-1" role="dialog" aria-labelledby="queryDelModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-body">
-                    <label id="queryDelMsg">確定要刪除以下股</label>
+                    <label id="queryDelMsg">確定要刪除以下股票</label>
                     <textarea class="form-control rounded-0" id="queryDelStocks" rows="6" readonly></textarea>
                 </div>
                 <div class="modal-footer">
@@ -52,6 +90,18 @@ white-space: pre-line;
         </div>
     </div>
     <% } %>
+    <div class="modal fade" id="waitingAddStock" tabindex="-1" role="dialog" aria-labelledby="waitingAddStockLabel">
+        <div class="modal-dialog modal-sm" role="document">
+            <div class="modal-content">
+                <div class="modal-body text-center">
+                    <div class="loader"></div>
+                    <div clas="loader-txt">
+                        <p>正在更新您的設定....</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="modal fade" id="confirmErroorModal" tabindex="-1" role="dialog" aria-labelledby="confirmErroorModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -149,6 +199,30 @@ white-space: pre-line;
             </tr>
         </thead>
     </table>
+    <hr>
+    <% if (username == 'ADMIN') { %>
+    <label class="text-dark">使用者資訊:</label>
+    <input type="button" id="deleteUser" value="刪除使用者所有資訊" class="btn btn-primary" />
+    <input type="button" id="clearUserStocks" value="清除使用者股票資訊" class="btn btn-primary" />
+    <table 
+        id="allUsers" 
+        data-toggle="table" 
+        data-search="true"
+        data-pagination="true" 
+        data-thead-classes="table-dark"
+        data-page-list="[10, 25, 50, All]"> 
+        <thead>
+            <tr>
+                <th data-checkbox="true"></th>
+                <th data-field="id">#</th>
+                <th data-field="username" data-sortable="true">名稱</th>
+                <th data-field="email" data-sortable="true">信箱</th>
+                <th data-field="count" data-sortable="true">數目</th>
+                <th data-field="list">觀察名單列表:</th>
+            </tr>
+        </thead>
+    </table>
+    <% } %>
 </body>
 <script>
 
@@ -190,8 +264,20 @@ $('#confirmStocks').click(function() {
     });
 
     if (monitorStocks.length > maxMonitoredStocks) {
-        showPopup('選取超過 <%= maxMonitoredStocks %> 筆的股票資');
+        showPopup('選取超過 <%= maxMonitoredStocks %> 筆的股票資料');
+        return;
     }
+    else if (monitorStocks.length == 0) {
+        showPopup('請至少選擇一筆股票資料');
+        return;
+    }
+
+    socket.emit('addMonitorStocks', monitorStocks);
+    $("#waitingAddStock").modal({
+      backdrop: "static", //remove ability to close modal with click
+      keyboard: false, //remove option to close with keyboard
+      show: true //Display loader!
+    });
 });
 
 $("#addStock").click(function() {
@@ -258,22 +344,34 @@ var updateSavedTableFunc = function(json) {
     updateSavedTable();
 }
 
+var addMonitorStocksOKFunc = function(json) {
+    window.location.href = "/stock/monitor";
+}
+
 $(function() {
     updateSavedTable();
     updateQueuedTable();
+<% if (username == 'ADMIN') { %>
+    updateAllUsersTable();
+<% } %>
 
     registryOnlineCB(updateOnline);
     registrySetupCB(setupFunc);
     registryAddStockResultCB(addStockResultFunc);
     registryUpdateQueuedTableCB(updateQueuedTableFunc);
     registryUpdateSavedTableCB(updateSavedTableFunc);
+    registryAddMonitorStocksOKCB(addMonitorStocksOKFunc);
 <% if (username == 'ADMIN') { %>
     registryDelSavedStockConfirmCB(delSavedStockConfirmFunc);
+    registryDelUsersOKCB(delUsersOKFunc);
 <% } %>
     socket = initSocketIO();
 })
 
 <% if (username == 'ADMIN') { %>
+//
+// delete saved stocks
+//
 var delSavedStockConfirmFunc = function() {
     $('#delStockLoading').attr('hidden', true);
     $('#deleteStocks').attr('disabled', false);
@@ -304,6 +402,9 @@ $('#delSavedStocksAction').click(function() {
     $('#deleteStocks').attr('disabled', true);
 });
 
+//
+// refresh all saved stocks
+//
 $('#refetchAllStocks').click(function() {
     $('#refreshModal').modal('show');
 });
@@ -311,6 +412,68 @@ $('#refetchAllStocks').click(function() {
 $('#refreshStocksAction').click(function() {
     socket.emit('refreshAllStock', delStocks);
 });
+
+//
+// manage all users
+//
+function updateAllUsersTable() {
+    $('#allUsers').bootstrapTable('refresh', {
+        url: '/stock/warehouse/allUsers'
+    });
+}
+
+var delUsersData = [];
+var clearUsersData = [];
+$('#deleteUser').click(function() {
+    delUsersData = [];
+    clearUsersData = [];
+    let delMsg = '';
+    $('#allUsers > tbody  > tr').each(function(){
+        if ($(this).attr('class') != undefined && $(this).attr('class').indexOf('selected') >= 0) {
+            let user = $(this).find('td').slice(2,3).text();
+            let email = $(this).find('td').slice(3,4).text();
+            delUsersData.push(user);
+            delMsg += 'Account: ' + user + '[' + email + ']\n';
+        }
+    });
+    if (delUsersData.length == 0)
+        return;
+
+    $('#delUsersMsg').text(delMsg);
+    $('#delUserModal').modal('show');
+});
+
+$('#clearUserStocks').click(function() {
+    delUsersData = [];
+    clearUsersData = [];
+    let delMsg = '';
+    $('#allUsers > tbody  > tr').each(function(){
+        if ($(this).attr('class') != undefined && $(this).attr('class').indexOf('selected') >= 0) {
+            let user = $(this).find('td').slice(2,3).text();
+            let email = $(this).find('td').slice(3,4).text();
+            clearUsersData.push(user);
+            delMsg += 'Clear Stocks: ' + user + '[' + email + ']\n';
+        }
+    });
+    if (clearUsersData.length == 0)
+        return;
+
+    $('#delUsersMsg').text(delMsg);
+    $('#delUserModal').modal('show');
+});
+
+$('#delUsersAction').click(function() {
+    console.log(delUsersData);
+    console.log(clearUsersData);
+    if (delUsersData.length > 0)
+        socket.emit('delUsers', delUsersData);
+    else
+        socket.emit('clearUsers', clearUsersData);
+});
+
+var delUsersOKFunc = function(data) {
+    updateAllUsersTable();
+}
 <% } %>
 
 </script>

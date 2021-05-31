@@ -117,4 +117,16 @@ io.sockets.on('connection', function(socket) {
     socket.on('refreshAllStock', function(data) {
         conn.refreshAllStock(socket);
     });
+
+    socket.on('addMonitorStocks', function(data) {
+        conn.addMonitorStocks(socket, data);
+    });
+
+    socket.on('delUsers', function(data) {
+        conn.delUsers(socket, data);
+    });
+
+    socket.on('clearUsers', function(data) {
+        conn.clearUsers(socket, data);
+    });
 });

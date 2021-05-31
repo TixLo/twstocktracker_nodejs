@@ -112,6 +112,63 @@ var refreshAllStock = async function(socket) {
     }
 }
 
+var addMonitorStocks = async function(socket, data) {
+    logger.info(data);
+    if (data == undefined || data.length == 0) {
+        socket.emit('addMonitorStocksOK', {});
+        return;
+    }
+
+    let stocks = await stockdb.getStock(data);
+    logger.info(stocks);
+    if (stocks.data == undefined) {
+        socket.emit('addMonitorStocksOK', {});
+        return;
+    }
+
+    logger.info('socket.usrname: ' + socket.username);
+    let user = await stockdb.getUserByName(socket.username);
+    logger.info(user);
+    if (user.data == undefined) {
+        socket.emit('addMonitorStocksOK', {});
+        return;
+    }
+
+    await stockdb.removeUserStock(user.data[0]);
+    for (let i=0 ; i<stocks.data.length ; i++) {
+        let ret = await stockdb.addUserStock(
+            user.data[0], stocks.data[i]);
+    }
+    socket.emit('addMonitorStocksOK', {});
+}
+
+var delUsers = async function(socket, data){
+    logger.info(data);
+    if (data == undefined || data.length == 0) {
+        socket.emit('delUsersOK', {});
+        return;
+    }
+
+    await stockdb.delUsers(data);
+    socket.emit('delUsersOK', {});
+}
+
+var clearUsers = async function(socket, data){
+    logger.info(data);
+    if (data == undefined || data.length == 0) {
+        socket.emit('delUsersOK', {});
+        return;
+    }
+
+    for (let i=0 ; i<data.length ; i++) {
+        let user = await stockdb.getUserByName(data[i]);
+        if (user.data == undefined)
+            continue;
+        await stockdb.removeUserStock(user.data[0]);
+    }
+    socket.emit('delUsersOK', {});
+}
+
 module.exports.init = init;
 module.exports.broadcast = broadcast;
 module.exports.addStock = addStock;
@@ -121,3 +178,6 @@ module.exports.addStockResult = addStockResult;
 module.exports.hi = hi;
 module.exports.deleteSavedStock = deleteSavedStock;
 module.exports.refreshAllStock = refreshAllStock;
+module.exports.addMonitorStocks = addMonitorStocks;
+module.exports.delUsers = delUsers;
+module.exports.clearUsers = clearUsers;

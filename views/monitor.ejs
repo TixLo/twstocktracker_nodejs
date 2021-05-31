@@ -1,10 +1,59 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>Insert title here</title>
+    <meta charset="UTF-8">
+    <title>監控中心</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link href="https://unpkg.com/bootstrap-table@1.18.3/dist/bootstrap-table.min.css" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://unpkg.com/bootstrap-table@1.18.3/dist/bootstrap-table.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="/js/common.js"></script>
+    <% include banner %>
 </head>
 <body>
-monitor
+    <hr>
+    觀察中的股票列表
+    <input type="button" id="editStock" value="編輯" class="btn btn-dark" />
+    <hr>
+    <table 
+        id="monitorStocks" 
+        data-toggle="table" 
+        data-pagination="false" 
+        data-thead-classes="table-dark">
+        <thead>
+            <tr>
+                <th data-field="id">#</th>
+                <th data-field="stock" data-sortable="true">股票代號</th>
+                <th data-field="name" data-sortable="true">股票名稱</th>
+                <th data-field="dataCount" data-sortable="true">資料筆數</th>
+                <th data-field="dealCount" data-sortable="true">交易次數</th>
+                <th data-field="win" data-sortable="true">勝率(%)</th>
+                <th data-field="profit" data-sortable="true">損益(%)</th>
+                <th data-field="status" data-sortable="true">狀態</th>
+            </tr>
+        </thead>
+    </table>
 </body>
+<script>
+var socket;
+
+$("#editStock").click(function() {
+    window.location.href = "/stock/warehouse";
+});
+
+var updateMonitorStocks = function() {
+    $('#monitorStocks').bootstrapTable('refresh', {
+        url: '/stock/monitorStocks'
+    });
+}
+
+$(function() {
+    updateMonitorStocks();
+
+    registryOnlineCB(updateOnline);
+    socket = initSocketIO();
+});
+</script>
 </html>

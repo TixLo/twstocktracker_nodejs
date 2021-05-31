@@ -95,6 +95,23 @@ var addUser = async function(username, password, email) {
     return await exec(sql);
 }
 
+var removeUserStock = async function(user) {
+    // remove
+    let sql = "DELETE FROM tracker_stock WHERE tracker_id={0}".format(user.tracker_id);
+    await exec(sql);
+}
+
+var addUserStock = async function(user, stock) {
+    // add
+    sql = "INSERT INTO " 
+            + "tracker_stock (" 
+            + "tracker_id, stock_id"
+            + ") VALUES ("
+            + "'" + user.tracker_id + "', '" + stock.stock_id + "'"
+            + ")";
+    return await exec(sql);
+}
+
 var getAllUsers = async function() {
     var sql = 'SELECT * from tracker';
     return await exec(sql);
@@ -110,6 +127,33 @@ var updateUserEmail = async function(user, newEmail) {
     return await exec(sql);
 }
 
+var getUserStocks = async function(user) {
+    let sql = "SELECT * FROM tracker_stock WHERE tracker_id={0}".format(user.tracker_id);
+    let allStockIds = await exec(sql);
+    //logger.info(allStockIds);
+
+    let allStocks = [];
+    if (allStockIds.data == undefined)
+        return allStockIds;
+
+    for (let i=0 ; i<allStockIds.data.length ; i++) {
+        sql = "SELECT * FROM stock WHERE stock_id={0}".format(allStockIds.data[i].stock_id);
+        let d1 = await exec(sql);
+        if (d1.data == undefined)
+            continue;
+
+        let d2 = await getAllStockDay(d1.data[0].stock_id);
+        if (d2.data == undefined)
+            continue;
+
+        let stock = d1.data[0];
+        stock.data = d2.data;
+        allStocks.push(stock);
+    }
+
+    return allStocks;
+}
+
 var getStockDay = async function(stockId, date) {
     let dateLong = dateToLong(date);
     let sql = "SELECT * FROM `stock_day` WHERE date_stock={0} and stock_id='{1}'";
@@ -117,9 +161,22 @@ var getStockDay = async function(stockId, date) {
     return await exec(sql);
 }
 
-var getStock = async function(stockNo) {
-    let sql = "SELECT * FROM `stock` WHERE stock_no='{0}'";
-    sql = sql.format(stockNo);
+var getAllStockDay = async function(stockId) {
+    let sql = "SELECT * FROM `stock_day` WHERE stock_id={0}".format(stockId);
+    return await exec(sql);
+}
+
+var getStock = async function(stockNos) {
+    // SELECT * FROM `stock` WHERE (stock_no='2454') OR (stock_no='0050')
+    //let sql = "SELECT * FROM `stock` WHERE stock_no='{0}'";
+    let sql = "SELECT * FROM `stock` WHERE ";
+    for (let i = 0 ; i<stockNos.length ; i++) {
+        sql += "(stock_no='" + stockNos[i] + "')";
+
+        if (i != stockNos.length - 1)
+            sql += " OR ";
+    }
+    logger.info(sql);
     return await exec(sql);
 }
 
@@ -135,7 +192,7 @@ var getStockCountByDbId = async function(stockDbId) {
 }
 
 var delStock = async function(stockNo) {
-    let stock = await getStock(stockNo);
+    let stock = await getStock([stockNo]);
     if (stock.data == undefined)
         return;
 
@@ -176,7 +233,7 @@ var addStock = async function(stockJson, type) {
     //
     // save or update stock table
     //
-    var stock = await getStock(stockId);
+    var stock = await getStock([stockId]);
     //logger.info(stock);
     if (stock.code != 'OK' || stock.data == undefined) {
         logger.info('insert into DB');
@@ -193,7 +250,7 @@ var addStock = async function(stockJson, type) {
             return;
         }
     }
-    stock = await getStock(stockId);
+    stock = await getStock([stockId]);
     //logger.info(stock);
 
     // save or update stock_day table
@@ -278,15 +335,36 @@ var addStock = async function(stockJson, type) {
     return;
 }
 
+var delUsers = async function(users){
+    for (let i=0 ; i<users.length ; i++) {
+        // 1. query user data from db
+        let user = await getUserByName(users[i]);
+        if (user.data == undefined)
+            continue;
+
+        // 2. remove user's all stocks
+        await removeUserStock(user.data[0]);
+
+        // 3. remove user
+        let sql = "DELETE FROM tracker WHERE tracker_id={0}".format(user.data[0].tracker_id);
+        await exec(sql);
+    }
+}
+
 module.exports.addUser = addUser;
 module.exports.getAllUsers = getAllUsers;
 module.exports.getUserByName = getUserByName;
 module.exports.updateUserEmail = updateUserEmail;
 module.exports.addStock = addStock;
 module.exports.getStockDay = getStockDay;
+module.exports.getAllStockDay = getAllStockDay;
 module.exports.getStock = getStock;
 module.exports.getAllStock = getAllStock;
 module.exports.getStockCountByDbId = getStockCountByDbId;
 module.exports.querySavedStock = querySavedStock;
 module.exports.delStock = delStock;
 module.exports.delAllStockDay = delAllStockDay;
+module.exports.addUserStock = addUserStock;
+module.exports.removeUserStock = removeUserStock;
+module.exports.getUserStocks = getUserStocks;
+module.exports.delUsers = delUsers;

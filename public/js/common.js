@@ -6,6 +6,8 @@ var addStockResultCB = function(json) {}
 var updateQueuedTableCB = function(json) {}
 var updateSavedTableCB = function(json) {}
 var delSavedStockConfirmCB = function(json) {}
+var addMonitorStocksOKCB = function(json) {}
+var delUsersOKCB = function(json) {}
 
 var initSocketIO = function() {
     socket = io.connect();
@@ -20,6 +22,8 @@ var initSocketIO = function() {
     socket.on('updateQueuedTable', updateQueuedTableCB);
     socket.on('updateSavedTable', updateSavedTableCB);
     socket.on('delSavedStockConfirm', delSavedStockConfirmCB);
+    socket.on('addMonitorStocksOK', addMonitorStocksOKCB);
+    socket.on('delUsersOK', delUsersOKCB);
 
     return socket;
 }
@@ -46,4 +50,12 @@ var registryUpdateSavedTableCB = function(cb) {
 
 var registryDelSavedStockConfirmCB = function(cb) {
     delSavedStockConfirmCB = cb;
+}
+
+var registryAddMonitorStocksOKCB = function(cb) {
+    addMonitorStocksOKCB = cb;
+}
+
+var registryDelUsersOKCB = function(cb) {
+    delUsersOKCB = cb;
 }

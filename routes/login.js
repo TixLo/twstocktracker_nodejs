@@ -3,6 +3,7 @@ var logger = require('log4js').getLogger();
 var router = express.Router();
 var stockdb = require('../controller/stockdb.js');
 var cookies = require('./cookies.js');
+var conn = require('./conn.js');
 
 var redirect = function(res, url) {
     res.statusCode=302;
@@ -10,7 +11,7 @@ var redirect = function(res, url) {
     return res.end();
 }
 
-var homePage = '/stock/warehouse';
+var homePage = '/stock/monitor';
 
 router.get('/', async function(req, res, next) {
     var ip = req.headers['x-forwarded-for'] ||
@@ -49,18 +50,6 @@ router.get('/registry', function(req, res, next) {
                 null;
     logger.info('registry from ' + ip);
     res.render('registry');
-});
-
-router.get('/monitor', async function(req, res, next) {
-    var ip = req.headers['x-forwarded-for'] ||
-                req.socket.remoteAddress ||
-                null;
-    logger.info('monitor from ' + ip);
-    if (await cookies.check(req.cookies) == false) {
-        redirect(res, '/');
-        return;
-    }
-    res.render('monitor');
 });
 
 router.post('/dologin', async function(req, res) {
@@ -118,12 +107,19 @@ router.post('/doregistry', async function(req, res) {
         return;
     }
 
+    if (req.body.username.indexOf('<') >= 0 ||
+        req.body.password.indexOf('<') >= 0) {
+        res.render('loginFailure', {msg: '帳號或密碼不合法'});
+        return;
+    }
+
     var ret = await stockdb.addUser(req.body.username, req.body.password, req.body.email);
     if (ret.code == 'ERROR') {
         res.render('registryFailure');
         return;
     }
     else {
+        conn.broadcast('delUsersOK', {});
         redirect(res, '/');
     }
 });
