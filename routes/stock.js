@@ -1,9 +1,13 @@
 var express = require('express');
+var fs = require("fs");
 var logger = require('log4js').getLogger('stock');
 var router = express.Router();
 var stockdb = require('../controller/stockdb');
 var TWSE = require('../controller/TWSE');
 var cookies = require('./cookies');
+var format = require('string-format');
+
+format.extend(String.prototype, {})
 
 var redirect = function(res, url) {
     res.statusCode=302;
@@ -186,8 +190,135 @@ router.get('/warehouse/allUsers', async function(req, res, next) {
     let data = {};
     data.rows = users;
     res.set({ 'content-type': 'application/json; charset=utf-8' });
-    logger.info(data);
+    //logger.info(data);
     res.end(JSON.stringify(data));
+});
+
+router.post('/genstock', async function(req, res, next) {
+    if (await cookies.check(req.cookies) == false) {
+        res.end('');
+        return;
+    }
+
+    var response = function(res, status, dataUrl) {
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify({
+            status: status,
+            dataUrl: dataUrl
+        }));
+    }
+
+    let dataUrl = '';
+    logger.info(req.body);
+    if (req.body.stock == undefined) {
+        response(res, 'Error', '');
+        return;
+    }
+
+    let converDateFormat = function(d) {
+        if (d == undefined)
+            return undefined;
+        let tokens = d.split('/');
+        if (tokens.length != 3)
+            return undefined;
+
+        let yyyy = parseInt(tokens[2]) - 1911;
+        let mm = tokens[0];
+        let dd = tokens[1];
+        return ('{0}/{1}/{2}').format(yyyy, mm, dd);
+    }
+
+    //
+    // read stock data from DB
+    //
+    let s = await stockdb.getStock([req.body.stock]);
+    if (s.data == undefined) {
+        response(res, 'Error', '');
+        return;
+    }
+    
+    let d = await stockdb.getStockDayByPeriod(
+                req.body.stock,
+                converDateFormat(req.body.startTime),
+                converDateFormat(req.body.endTime));
+    if (d.data == undefined) {
+        response(res, 'Error', '');
+        return;
+    }
+    let stock = d.data;
+
+    //
+    //sort by date_stock
+    //
+    stock.sort(function(a, b){
+        return (a.date_stock - b.date_stock);
+    });
+    //logger.info(stock);
+
+    //
+    // generate json
+    //
+    let stockJson = {};
+    stockJson.StockId = req.body.stock;
+    stockJson.Name = s.data[0].stock_name;
+    stockJson.Type = s.data[0].stock_type;
+    stockJson.Title = [
+        "日期",        //0
+        "開盤價",      //1
+        "最高價",      //2
+        "最低價",      //3
+        "收盤價",      //4
+        "漲跌",        //5
+        "成交量",      //6
+        "5MA",         //7
+        "10MA",        //8
+        "20MA",        //9
+        "60MA",        //10
+    ];
+    let stockDataJson = [];
+    for (let i=0 ; i<stock.length ; i++) {
+        let d = [];
+
+        let time = new Date(stock[i].date_stock);
+        let yyyy = time.getFullYear();
+        let mm = time.getMonth();
+        let dd = time.getDate();
+        d.push(yyyy + '/' + mm + '/' + dd);
+        d.push(stock[i].stock_open_price);
+        d.push(stock[i].stock_highest_price);
+        d.push(stock[i].stock_lowest_price);
+        d.push(stock[i].stock_close_price);
+        d.push(stock[i].stock_delta_price);
+        d.push(stock[i].stock_deal_num);
+        d.push(0);
+        d.push(0);
+        d.push(0);
+        d.push(0);
+
+        //logger.info(stock[i]);
+        //logger.info(d);
+        stockDataJson.push(d);
+    }
+    stockJson.Data = stockDataJson;
+
+    //
+    // write to file
+    //
+    let filename = '{0}_{1}.json'.format(req.cookies.profile.username, req.body.stock);
+    //logger.info(filename);
+    let base64Filename = Buffer.from(filename).toString('base64');
+    //logger.info(base64Filename);
+    try {
+        let buf = JSON.stringify(stockJson, null, 2);
+        fs.writeFileSync('./public/stock/' + base64Filename, buf,{flag:'w+'});
+        //console.log("File written successfully");
+        status = 'OK';
+        dataUrl = '/stock/' + base64Filename; 
+        response(res, 'OK', '/stock/' + base64Filename);
+    } catch(err) {
+        console.error(err);
+        response(res, 'Error', '');
+    }
 });
 
 module.exports = router;

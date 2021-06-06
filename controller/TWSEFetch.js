@@ -4,7 +4,7 @@ var logger = log4js.getLogger('TWSE');
 var sysTool = require('../utils/sysTool.js');
 
 var historyEndYYYY = 2021;
-var historyEndMM = 3;
+var historyEndMM = 5;
 
 var get = function(date, stockId) {
     var url = 'http://www.twse.com.tw/exchangeReport/STOCK_DAY?date=';
@@ -16,8 +16,10 @@ var get = function(date, stockId) {
         var res = request('GET', url);
         var json = JSON.parse(res.getBody('utf8'));
         logger.info('fetch Done');
-        if (json != undefined && json.stat != 'OK')
+        if (json != undefined && json.stat != 'OK') {
+            logger.info(json);
             return undefined;
+        }
 
         if (json.title == undefined)
             return undefined;

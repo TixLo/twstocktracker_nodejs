@@ -1,29 +1,74 @@
-<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
     <title>監控中心</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link href="https://unpkg.com/bootstrap-table@1.18.3/dist/bootstrap-table.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker3.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script src="https://unpkg.com/bootstrap-table@1.18.3/dist/bootstrap-table.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="https://d3js.org/d3.v4.min.js"></script>
     <script src="/js/common.js"></script>
+    <link rel="stylesheet" href="/css/techanStyle.css?v=3">
     <% include banner %>
 </head>
 <body>
-    <hr>
+    <div class="modal" id="waitingForApply" tabindex="-1" role="dialog" aria-labelledby="waitingAddStockLabel">
+        <div class="modal-dialog modal-sm" role="document">
+            <div class="modal-content">
+                <div class="modal-body text-center">
+                    <div class="loader"></div>
+                    <div clas="loader-txt">
+                        <p>正在套用您的設定....</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="confirmErroorModal" tabindex="-1" role="dialog" aria-labelledby="confirmErroorModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmErroorModalLabel">通知</h5>
+                </div>
+                <div class="modal-body">
+                    <label id="errMsg"></label>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-dark" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="p-2">
     觀察中的股票列表
     <input type="button" id="editStock" value="編輯" class="btn btn-dark" />
     <hr>
-    <table 
+    </div>
+
+    <div class="p-2">
+        <div class="pl-3 form-inline row">
+            <span class='p-2'>開始日期:</span>
+            <input type="text" name="date" class="form-control datepicker" id="startDate" value="">
+            <span class='p-2'>結束日期:</span>
+            <input type="text" name="date" class="form-control datepicker" id="endDate" value="">
+            <span class='p-2'>請設定股票查詢時間區間(預設:全部)</span>
+        </div>
+    <span class='p-2'>請選擇要觀察的股票</span>
+    <input type="button" id="applySelectStock" value="確認" class="btn btn-dark m-2" />
+    </div>
+    <div class="rounded border border-dark bg-light m-2" style="height: 400px">
+    <table
         id="monitorStocks" 
         data-toggle="table" 
         data-pagination="false" 
         data-thead-classes="table-dark">
         <thead>
             <tr>
+                <th data-radio="true"></th>
                 <th data-field="id">#</th>
                 <th data-field="stock" data-sortable="true">股票代號</th>
                 <th data-field="name" data-sortable="true">股票名稱</th>
@@ -35,9 +80,42 @@
             </tr>
         </thead>
     </table>
+    <hr>
+    </div>
+    <div class='p-3'>
+        <div class='p-3 d-flex justify-content-center'>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" value="" id="ma5Checkbox">
+                <label class="form-check-label font-weight-bold" for="ma5Checkbox">MA5</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" value="" id="ma10Checkbox">
+                <label class="form-check-label font-weight-bold" for="ma10Checkbox">MA10</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" value="" id="ma20Checkbox">
+                <label class="form-check-label font-weight-bold" for="ma20Checkbox">MA20</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" value="" id="ma60Checkbox">
+                <label class="form-check-label font-weight-bold" for="ma60Checkbox">MA60</label>
+            </div>
+            <input type="button" id="applyStockConfig" value="套用" class="btn btn-dark" />
+        </div>
+        <div class="rounded border border-dark bg-light" id='stockArea'> </div>
+    </div>
 </body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+<script src="/js/techan.js"></script>
+<script src="/js/stocktool.js?v=26"></script>
 <script>
 var socket;
+var stockDataUrl = '';
+
+function showPopup(msg) {
+    $('#errMsg').text(msg);
+    $('#confirmErroorModal').modal('show');
+}
 
 $("#editStock").click(function() {
     window.location.href = "/stock/warehouse";
@@ -49,11 +127,108 @@ var updateMonitorStocks = function() {
     });
 }
 
+var showApplyLoading = function() {
+    $("#waitingForApply").modal({
+      backdrop: "static", //remove ability to close modal with click
+      keyboard: false, //remove option to close with keyboard
+      show: true //Display loader!
+    });
+}
+
+var hideApplyLoading = function() {
+    $('#waitingForApply').modal('hide');
+}
+
+var initGraph = function() {
+    //d3.select("svg").remove();
+    removeStockGraph();
+    let opt = {
+        ma5: $('#ma5Checkbox').prop('checked'),
+        ma10: $('#ma10Checkbox').prop('checked'),
+        ma20: $('#ma20Checkbox').prop('checked'),
+        ma60: $('#ma60Checkbox').prop('checked'),
+    }
+
+    initStockGraph(stockDataUrl, opt);
+}
+
+$('#applyStockConfig').click(function() {
+    showApplyLoading();
+    initGraph();
+    setTimeout(function() {
+        hideApplyLoading();
+    },1000);
+});
+
+$('#applySelectStock').click(function() {
+    let focusStockId = undefined;
+    $('#monitorStocks > tbody  > tr').each(function(){
+        if ($(this).attr('class') != undefined && $(this).attr('class').indexOf('selected') >= 0) {
+            focusStockId = $(this).find('td').slice(2,3).text();
+        }
+    });
+
+    if (focusStockId == undefined) {
+        showPopup('請選擇一檔要觀察的股票');
+        return;
+    }
+    console.log(focusStockId);
+
+    let startDate = $('#startDate').val();
+    let endDate = $('#endDate').val();
+    let startms = 0;
+    let endms = 0;
+    let data = {};
+    if (startDate != '' && endDate != '') {
+        startms = new Date(startDate).getTime();
+        endms = new Date(endDate).getTime();
+        if (startms >= endms) {
+            showPopup('"開始日期"要小於"結束日期"');
+            return;
+        }
+        data = {
+            stock: focusStockId,
+            startTime: startDate,
+            endTime: endDate
+        };
+    }
+    else {
+        data = {
+            stock: focusStockId
+        };
+    }
+
+    showApplyLoading();
+    $.ajax({
+        type: 'POST',
+        url: '/stock/genstock',
+        data: data,
+        success: function(res){
+            console.log(res);
+            if (res.dataUrl != undefined && res.dataUrl != '') {
+                stockDataUrl = res.dataUrl;
+                initGraph();
+            }
+        }
+    }).always(function(){
+        hideApplyLoading();
+    });
+
+});
+
+$('#monitorStocks').on('dbl-click-row.bs.table', function (row, $element, field) {
+    console.log('dbl-click');
+    console.log(row);
+})
+
+
 $(function() {
     updateMonitorStocks();
 
     registryOnlineCB(updateOnline);
     socket = initSocketIO();
+
+    $('.datepicker').datepicker();
 });
 </script>
 </html>

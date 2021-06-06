@@ -25,12 +25,13 @@ var processHistoryFetch = function(message) {
             currTotal = message.total;
             if (message.finish == true) {
                 historyDict.splice(i, 1);
-                conn.broadcast('updateSavedTable', {});
+                //conn.broadcast('updateSavedTable', {});
             }
             else {
                 //historyDict[i].status = message.curr + '/' + message.total;
                 let percentage = (message.curr * 100) / message.total;
-                historyDict[i].status = '抓取進度 ' + percentage.toFixed() + '%';
+                historyDict[i].status = '抓取進度 ' + percentage.toFixed() 
+                        + '% (' + message.curr + '/' + message.total + ')';
             }
         }
     }

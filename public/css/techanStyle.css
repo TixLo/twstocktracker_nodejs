@@ -1,0 +1,123 @@
+body {
+        font: 13px sans-serif;
+    }
+
+text {
+    fill: #000;
+}
+
+path.candle {
+    stroke: #000000;
+}
+
+path.candle.body {
+    stroke-width: 0;
+}
+
+path.candle.up {
+    fill: #FF0000;
+    stroke: #FF0000;
+}
+
+path.candle.down {
+    fill: #00AA00;
+    stroke: #00AA00;
+}
+
+path.volume {
+/*    opacity: 0.8;*/
+    fill: #DDDDDD;
+}
+
+path.volume.up {
+    fill: #FF0000;
+}
+
+path.volume.down {
+    fill: #00AA00;
+}
+
+path.volume.equal {
+    fill: #DDDDDD;
+}
+
+.ma-5 path.line {
+    stroke: #1f77b4;
+    fill: none;
+    stroke-width: 2;
+}
+.ma-10 path.line {
+    stroke: #aec7e8;
+    fill: none;
+    stroke-width: 2;
+}
+.ma-20 path.line {
+    stroke: #9E9E00;
+    fill: none;
+    stroke-width: 2;
+}
+.ma-60 path.line {
+    stroke: #FF30FF;
+    fill: none;
+    stroke-width: 2;
+}
+
+.x.axis line {
+    fill: none;
+    stroke: rgba(0,0,0,0.1);
+}
+
+.y.axis line {
+    fill: none;
+    stroke: rgba(0,0,0,0.1);
+}
+
+.crosshair {
+    cursor: crosshair;
+    font-size: 20px;
+}
+
+.crosshair path.wire {
+    stroke: #808000;
+    stroke-dasharray: 1, 1;
+    stroke-width: 2px;
+}
+
+.crosshair .axisannotation path {
+    fill: #F5F500;
+}
+
+.coords {
+    font-size: 16px;
+}
+
+.fixed-table-body {
+  height: auto
+}
+
+.loader {
+    position: relative;
+    text-align: center;
+    margin: 15px auto 35px auto;
+    z-index: 9999;
+    display: block;
+    width: 80px;
+    height: 80px;
+    border: 10px solid rgba(0, 0, 0, .3);
+    border-radius: 50%;
+    border-top-color: #000;
+    animation: spin 1s ease-in-out infinite;
+    -webkit-animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to {
+        -webkit-transform: rotate(360deg);
+    }
+}
+
+@-webkit-keyframes spin {
+   . to {
+        -webkit-transform: rotate(360deg);
+    }
+}

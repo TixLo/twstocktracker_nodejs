@@ -10,14 +10,23 @@ var queueStock = [];
 var fetching = false;
 
 // TYPE1: 上市
+var getType2History = async function(stockId) {
+    let allDates = TWSEFetch.getHistoryDate();
+    for (let curr=0 ; curr<allDates.length ; curr++) {
+        logger.info('[' + curr + ']: ' + allDates[curr]);
+    }
+};
+
 var getType1History = async function(stockId) {
     logger.info('getType1History: ' + stockId);
     let stockArray = [];
     let allDates = TWSEFetch.getHistoryDate();
     for (let curr=0 ; curr<allDates.length ; curr++) {
         let date = allDates[curr];
+        logger.info('[' + curr + ']: ' + date);
         let stock = TWSEFetch.get(date, stockId);
         if (stock == undefined) {
+            logger.info('Failed!!!');
             continue;
         }
         await stockdb.addStock(stock, 'TYPE1');

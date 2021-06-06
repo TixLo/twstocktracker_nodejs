@@ -14,7 +14,7 @@ var pool = mysql.createPool({
 var connected = false;
 
 var exec = function(sql, values) {
-    logger.info('exec: ' + sql);
+    //logger.info('exec: ' + sql);
     return new Promise(( resolve, reject ) => {
         pool.getConnection(function(err, connection) {
             if (err) {
@@ -78,6 +78,7 @@ var currencyToLong = function(currency) {
 var priceToFloat = function(price) {
     try {
         price = price.replace('X','');
+        price = price.replace(',','');
         return parseFloat(price);
     }
     catch (err) {
@@ -166,6 +167,23 @@ var getAllStockDay = async function(stockId) {
     return await exec(sql);
 }
 
+var getStockDayByPeriod = async function(stockNo, startDate, endDate) {
+    let d = await getStock([stockNo]);
+    if (d.data == undefined)
+        return undefined;
+
+    let sql = '';
+    if (startDate == undefined) {
+        sql = "SELECT * FROM `stock_day` WHERE stock_id={0}";
+        sql = sql.format(d.data[0].stock_id);
+    }
+    else {
+        sql = "SELECT * FROM `stock_day` WHERE stock_id={0} and date_stock>={1} and date_stock<={2}";
+        sql = sql.format(d.data[0].stock_id, dateToLong(startDate), dateToLong(endDate));
+    }
+    return await exec(sql);
+}
+
 var getStock = async function(stockNos) {
     // SELECT * FROM `stock` WHERE (stock_no='2454') OR (stock_no='0050')
     //let sql = "SELECT * FROM `stock` WHERE stock_no='{0}'";
@@ -176,7 +194,6 @@ var getStock = async function(stockNos) {
         if (i != stockNos.length - 1)
             sql += " OR ";
     }
-    logger.info(sql);
     return await exec(sql);
 }
 
@@ -196,8 +213,8 @@ var delStock = async function(stockNo) {
     if (stock.data == undefined)
         return;
 
-    logger.info('delStock');
-    logger.info(stock);
+    logger.info('delStock: ' + stockNo);
+    //logger.info(stock);
 
     // remove stock data
     let sql = "DELETE FROM stock WHERE stock_id={0}";
@@ -207,6 +224,7 @@ var delStock = async function(stockNo) {
     // rmove all stock_day data
     sql = "DELETE FROM stock_day WHERE stock_id={0}";
     sql = sql.format(stock.data[0].stock_id);
+
     return await exec(sql);
 }
 
@@ -236,7 +254,7 @@ var addStock = async function(stockJson, type) {
     var stock = await getStock([stockId]);
     //logger.info(stock);
     if (stock.code != 'OK' || stock.data == undefined) {
-        logger.info('insert into DB');
+        // logger.info('insert into DB');
         // add
         let sql = "INSERT INTO " 
                 + "stock (stock_name, stock_no, stock_type) VALUES ('{0}', '{1}', '{2}')";
@@ -257,6 +275,17 @@ var addStock = async function(stockJson, type) {
     for (let i=0 ; i<stockJson.data.length ; i++) {
         let item = stockJson.data[i];
         //logger.info(item)
+        //check data
+        let ok = true;
+        for (let j=0 ; j<item.length ; j++) {
+            if (item[j] == '--') {
+                ok = false;
+                break;
+            }
+        }
+        if (ok == false)
+            continue;
+
         let data = {
             stockDateStr : item[0],
             stockDate : dateToLong(item[0]),
@@ -279,7 +308,7 @@ var addStock = async function(stockJson, type) {
         //
         let stockDay = await getStockDay(data.stockDbId, item[0]);
         if (stockDay.code != 'OK' || stockDay.data == undefined) {
-            logger.info('insert {stockId} , {stockDateStr}'.format(data));
+            //logger.info('insert {stockId} , {stockDateStr}'.format(data));
             // add
             sql = "INSERT INTO " 
                     + "stock_day (" 
@@ -312,24 +341,12 @@ var addStock = async function(stockJson, type) {
                 logger.info('failed to insert stock_day');
                 logger.info(sql);
                 logger.info(err);
-                return;
+                continue;
             }
 
             //logger.info(sql);
             await exec(sql);
         }
-        //else {
-        //    // update
-        //    sql = "UPDATE stock_day SET "
-        //            + "stock_close_price={stockClosePrice},"
-        //            + "stock_cost={stockDealPrice},"
-        //            + "stock_deal_num={stockDealNum},"
-        //            + "stock_highest_price={stockHighestPrice},"
-        //            + "stock_lowest_price={stockLowestPrice},"
-        //            + "stock_num={stockNum},"
-        //            + "stock_open_price={stockOpenPrice}"
-        //            + " WHERE date_stock={stockDate} and stock_id='{stockDbId}'"
-        //}
     }
 
     return;
@@ -358,6 +375,7 @@ module.exports.updateUserEmail = updateUserEmail;
 module.exports.addStock = addStock;
 module.exports.getStockDay = getStockDay;
 module.exports.getAllStockDay = getAllStockDay;
+module.exports.getStockDayByPeriod = getStockDayByPeriod;
 module.exports.getStock = getStock;
 module.exports.getAllStock = getAllStock;
 module.exports.getStockCountByDbId = getStockCountByDbId;
