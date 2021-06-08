@@ -193,22 +193,22 @@ function initStockGraph(dataFile, options) {
         let startMAPos = 60;
         if (options.ma5) {
             svg.append("g").attr("class", "sma ma-5");
-            svg.select("g.sma.ma-5").datum(techan.indicator.sma().period(2)(data)).call(sma5);
+            svg.select("g.sma.ma-5").datum(techan.indicator.sma().period(5)(data)).call(sma5);
             startMAPos = drawMAIndicator('5MA', startMAPos, '#1f77b4');
         }
         if (options.ma10) {
             svg.append("g").attr("class", "sma ma-10");
-            svg.select("g.sma.ma-10").datum(techan.indicator.sma().period(3)(data)).call(sma10);
+            svg.select("g.sma.ma-10").datum(techan.indicator.sma().period(10)(data)).call(sma10);
             startMAPos = drawMAIndicator('10MA', startMAPos, '#aec7e8');
         }
         if (options.ma20) {
             svg.append("g").attr("class", "sma ma-20");
-            svg.select("g.sma.ma-20").datum(techan.indicator.sma().period(4)(data)).call(sma20);
+            svg.select("g.sma.ma-20").datum(techan.indicator.sma().period(20)(data)).call(sma20);
             startMAPos = drawMAIndicator('20MA', startMAPos, '#9E9E00');
         }
         if (options.ma60) {
             svg.append("g").attr("class", "sma ma-60");
-            svg.select("g.sma.ma-60").datum(techan.indicator.sma().period(5)(data)).call(sma60);
+            svg.select("g.sma.ma-60").datum(techan.indicator.sma().period(60)(data)).call(sma60);
             startMAPos = drawMAIndicator('60MA', startMAPos, '#FF30FF');
         }
 

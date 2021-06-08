@@ -112,6 +112,7 @@
         </button>
     </div>
     <hr>
+    <div class="p-2">
     <table class="table align-middle">
         <tbody>
             <tr>
@@ -143,37 +144,40 @@
             </tr>
         </thead>
     </table>
+    </div>
     <hr>
-    <label class="text-dark">選取想要監控的股票(最多10筆), 選擇好之後點選"確認":</label>
-    <input type="button" id="confirmStocks" value="確認" class="btn btn-dark" />
-    <% if (username == 'ADMIN') { %>
-        <input type="button" id="deleteStocks" value="刪除" class="btn btn-primary" />
-        <button class="btn btn-light" id="delStockLoading" type="button" disabled hidden>
-            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-            刪除中...
-        </button>
-        <input type="button" id="refetchAllStocks" value="重新抓取" class="btn btn-primary" />
-    <% } %>
-    <br>
-    <label class="text-dark">目前可使用的股票資料如下:</label>
-    <table 
-        id="savedStocks" 
-        data-toggle="table" 
-        data-search="true"
-        data-pagination="true" 
-        data-thead-classes="table-dark"
-        data-page-list="[10, 25, 50, All]"> 
-        <thead>
-            <tr>
-                <th data-checkbox="true"></th>
-                <th data-field="id">#</th>
-                <th data-field="stock" data-sortable="true">股票代號</th>
-                <th data-field="name" data-sortable="true">股票名稱</th>
-                <th data-field="count" data-sortable="true">資料筆數</th>
-                <th data-field="type" data-sortable="true">種類</th>
-            </tr>
-        </thead>
-    </table>
+    <div class="p-2">
+        <label class="text-dark">選取想要監控的股票(最多10筆), 選擇好之後點選"確認":</label>
+        <input type="button" id="confirmStocks" value="確認" class="btn btn-dark" />
+        <% if (username == 'ADMIN') { %>
+            <input type="button" id="deleteStocks" value="刪除" class="btn btn-primary" />
+            <button class="btn btn-light" id="delStockLoading" type="button" disabled hidden>
+                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                刪除中...
+            </button>
+            <input type="button" id="refetchAllStocks" value="重新抓取" class="btn btn-primary" />
+        <% } %>
+        <br>
+        <label class="text-dark">目前可使用的股票資料如下:</label>
+        <table 
+            id="savedStocks" 
+            data-toggle="table" 
+            data-search="true"
+            data-pagination="true" 
+            data-thead-classes="table-dark"
+            data-page-list="[10, 25, 50, All]"> 
+            <thead>
+                <tr>
+                    <th data-checkbox="true" data-formatter="stateFormatter"></th>
+                    <th data-field="id">#</th>
+                    <th data-field="stock" data-sortable="true">股票代號</th>
+                    <th data-field="name" data-sortable="true">股票名稱</th>
+                    <th data-field="count" data-sortable="true">資料筆數</th>
+                    <th data-field="type" data-sortable="true">種類</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
     <hr>
     <% if (username == 'ADMIN') { %>
     <label class="text-dark">使用者資訊:</label>
@@ -188,7 +192,7 @@
         data-page-list="[10, 25, 50, All]"> 
         <thead>
             <tr>
-                <th data-checkbox="true"></th>
+                <th data-filed="saved" data-checkbox="true"></th>
                 <th data-field="id">#</th>
                 <th data-field="username" data-sortable="true">名稱</th>
                 <th data-field="email" data-sortable="true">信箱</th>
@@ -203,11 +207,36 @@
 
 var maxMonitoredStocks = <%= maxMonitoredStocks %>;
 var socket;
+var savedStocks = [];
+
+function stateFormatter(value, row, index) {
+    if (savedStocks == undefined)
+        return false;
+
+    for (let i=0 ; i<savedStocks.length ; i++) {
+        if (row.stock == savedStocks[i])
+            return true;
+    }
+    return false;
+}
+
+function initSavedStockSelection(allStockData) {
+}
 
 function updateSavedTable(code) {
-    $('#savedStocks').bootstrapTable('refresh', {
-        url: '/stock/warehouse/stocks'
+    $.ajax({
+        type: 'POST',
+        url: '/stock/warehouse/listUserStockNos',
+        success: function(data){
+            savedStocks = data;            
+            $('#savedStocks').bootstrapTable(
+                'refresh', {
+                    url: '/stock/warehouse/stocks'
+                }
+            );
+        }
     });
+
 }
 
 function updateQueuedTable(code) {

@@ -76,32 +76,75 @@ router.get('/warehouse/queuedStockData', async function(req, res, next) {
     res.end(JSON.stringify(data));
 });
 
+router.post('/warehouse/listUserStockNos', async function(req, res, next) {
+    if (await cookies.check(req.cookies) == false) {
+        res.end('');
+        return;
+    }
+
+    let user = await stockdb.getUserByName(req.cookies.profile.username);
+    if (user.data == undefined) {
+        res.render('loginFailure', {msg: '資料出錯, 請重新燈入'});
+        return;
+    }
+    let userStocks = await stockdb.getUserStocks(user.data[0]);
+
+    let nos = [];
+    for (let j=0 ; j<userStocks.length ; j++) {
+        nos.push(userStocks[j].stock_no);
+    }
+
+    res.set({ 'content-type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify(nos));
+});
+
 router.get('/warehouse/stocks', async function(req, res, next) {
     if (await cookies.check(req.cookies) == false) {
         res.end('');
         return;
     }
 
+    let user = await stockdb.getUserByName(req.cookies.profile.username);
+    if (user.data == undefined) {
+        res.render('loginFailure', {msg: '資料出錯, 請重新燈入'});
+        return;
+    }
+    let userStocks = await stockdb.getUserStocks(user.data[0]);
+
     let stocks = [];
     let allStocks = await stockdb.getAllStock();
     if (allStocks.data != undefined) {
         for (let i=0 ; i<allStocks.data.length ; i++) {
             let item = allStocks.data[i];
-            logger.info(item);
+
+            let saved = false;
+            if (userStocks.length != 0) {
+                for (let j=0 ; j<userStocks.length ; j++) {
+                    if (item.stock_id == userStocks[j].stock_id) {
+                        saved = true;
+                        break;
+                    }
+                }
+            }
+
+            //logger.info(item);
             let d = await stockdb.getStockCountByDbId(item.stock_id);
-            logger.info(d);
+            //logger.info(d);
             stocks.push({
                 id: i+1, 
                 stock: item.stock_no, 
                 name: item.stock_name, 
                 count: d.data[0].COUNT, 
                 type:item.stock_type,
-                stock_db_id: item.stock_id});
+                stock_db_id: item.stock_id,
+                saved: saved
+            });
         }
     }
 
     let data = {};
     data.rows = stocks;
+    //console.log(stocks);
     res.set({ 'content-type': 'application/json; charset=utf-8' });
     //logger.info(data);
     res.end(JSON.stringify(data));
