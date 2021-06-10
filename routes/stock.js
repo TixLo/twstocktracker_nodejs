@@ -313,19 +313,18 @@ router.post('/genstock', async function(req, res, next) {
         "收盤價",      //4
         "漲跌",        //5
         "成交量",      //6
-        "5MA",         //7
-        "10MA",        //8
-        "20MA",        //9
-        "60MA",        //10
     ];
     let stockDataJson = [];
     for (let i=0 ; i<stock.length ; i++) {
         let d = [];
 
+        // format date
         let time = new Date(stock[i].date_stock);
         let yyyy = time.getFullYear();
         let mm = time.getMonth();
         let dd = time.getDate();
+
+        // fill in data
         d.push(yyyy + '/' + mm + '/' + dd);
         d.push(stock[i].stock_open_price);
         d.push(stock[i].stock_highest_price);
@@ -333,10 +332,6 @@ router.post('/genstock', async function(req, res, next) {
         d.push(stock[i].stock_close_price);
         d.push(stock[i].stock_delta_price);
         d.push(stock[i].stock_deal_num);
-        d.push(0);
-        d.push(0);
-        d.push(0);
-        d.push(0);
 
         //logger.info(stock[i]);
         //logger.info(d);
@@ -353,6 +348,9 @@ router.post('/genstock', async function(req, res, next) {
     //logger.info(base64Filename);
     try {
         let buf = JSON.stringify(stockJson, null, 2);
+        if (!fs.existsSync('./public/stock')){
+            fs.mkdirSync('./public/stock');
+        }
         fs.writeFileSync('./public/stock/' + base64Filename, buf,{flag:'w+'});
         //console.log("File written successfully");
         status = 'OK';

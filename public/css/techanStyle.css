@@ -56,6 +56,11 @@ path.volume.equal {
     fill: none;
     stroke-width: 2;
 }
+.ma-40 path.line {
+    stroke: #F0F000;
+    fill: none;
+    stroke-width: 2;
+}
 .ma-60 path.line {
     stroke: #FF30FF;
     fill: none;
@@ -120,4 +125,19 @@ path.volume.equal {
    . to {
         -webkit-transform: rotate(360deg);
     }
+}
+
+fieldset.stockSetTitle {
+    border: 1px groove #ddd !important;
+    padding: 0.2em 0.2em 0.2em 0.2em !important;
+    -webkit-box-shadow:  0px 0px 0px 0px #000;
+            box-shadow:  0px 0px 0px 0px #000;
+}
+
+legend.stockSetTitle {
+    font-size: 1.1em !important;
+    font-weight: bold !important;
+    text-align: left !important;
+    width:auto;
+    border-bottom:none;
 }

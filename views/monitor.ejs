@@ -12,7 +12,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script src="https://d3js.org/d3.v4.min.js"></script>
     <script src="/js/common.js"></script>
-    <link rel="stylesheet" href="/css/techanStyle.css?v=5">
+    <link rel="stylesheet" href="/css/techanStyle.css?v=13">
     <% include banner %>
 </head>
 <body>
@@ -44,105 +44,28 @@
         </div>
     </div>
     </div>
-
-    <div class="p-2">
-        <div class="pl-3 form-inline row">
-            <span class='p-2'>固定區間</span>
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" id="oneMonth" name="optradio" value="mon1">
-                <label class="form-check-label" for="oneMonth">一個月</label>
-            </div>
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" id="threeMonth" name="optradio" value="mon3">
-                <label class="form-check-label" for="threeMonth">三個月</label>
-            </div>
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" id="sixMonth" name="optradio" value="mon6">
-                <label class="form-check-label" for="sixMonth">六個月</label>
-            </div>
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" id="oneYear" name="optradio" value="mon12">
-                <label class="form-check-label" for="oneYear">一年</label>
-            </div>
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" id="twoYear" name="optradio" value="mon24">
-                <label class="form-check-label" for="twoYear">兩年</label>
-            </div>
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" id="threeYear" name="optradio" value="mon36">
-                <label class="form-check-label" for="threeYear">三年</label>
-            </div>
-        </div>
-        <div class="pl-3 form-inline row">
-            <span class='p-2'>自選區間</span>
-            <div class="rounded border border-dark bg-light p-1">
-                <span class='p-2'>開始日期:</span>
-                <input type="text" name="date" class="form-control datepicker" id="startDate" value="">
-                <span class='p-2'>結束日期:</span>
-                <input type="text" name="date" class="form-control datepicker" id="endDate" value="">
-                <span class='p-2'>請設定股票查詢時間區間(預設:全部)</span>
-            </div>
+    <div class="card">
+        <div class="card-header">參數設定</div>
+        <div class="card-body">
+            <% include tradingCondition %>
         </div>
     </div>
-<div>
-    <div class="rounded border border-dark bg-light m-2" style="height: 400px">
-    <table
-        id="monitorStocks" 
-        data-toggle="table" 
-        data-pagination="false" 
-        data-thead-classes="table-dark">
-        <thead>
-            <tr>
-                <th data-radio="true"></th>
-                <th data-field="id">#</th>
-                <th data-field="stock" data-sortable="true">股票代號</th>
-                <th data-field="name" data-sortable="true">股票名稱</th>
-                <th data-field="dataCount" data-sortable="true">資料筆數</th>
-                <th data-field="dealCount" data-sortable="true">交易次數</th>
-                <th data-field="win" data-sortable="true">勝率(%)</th>
-                <th data-field="profit" data-sortable="true">損益(%)</th>
-                <th data-field="status" data-sortable="true">狀態</th>
-            </tr>
-        </thead>
-    </table>
-    </div>
-    <div class="p-2 d-flex justify-content-between">
-        <div>
-            <span class='pl-2'>請選擇要觀察的股票</span>
-            <input type="button" id="applySelectStock" value="確認" class="btn btn-dark m-2" />
-        </div>
-        <div>
-            <span class='pl-2'>變更觀察中的股票</span>
-            <input type="button" id="editStock" value="編輯" class="btn btn-info" />
+    <div class="card">
+        <div class="card-header">觀察中的股票</div>
+        <div class="card-body">
+            <% include observedStocks %>
         </div>
     </div>
-</div>
-    <div class='p-3'>
-        <div class='p-3 d-flex justify-content-center'>
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="checkbox" value="" id="ma5Checkbox">
-                <label class="form-check-label font-weight-bold" for="ma5Checkbox">MA5</label>
-            </div>
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="checkbox" value="" id="ma10Checkbox">
-                <label class="form-check-label font-weight-bold" for="ma10Checkbox">MA10</label>
-            </div>
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="checkbox" value="" id="ma20Checkbox">
-                <label class="form-check-label font-weight-bold" for="ma20Checkbox">MA20</label>
-            </div>
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="checkbox" value="" id="ma60Checkbox">
-                <label class="form-check-label font-weight-bold" for="ma60Checkbox">MA60</label>
-            </div>
-            <input type="button" id="applyStockConfig" value="套用" class="btn btn-dark" />
+    <div class="card">
+        <div class="card-header">股票線圖</div>
+        <div class="card-body">
+            <% include candlestick %>
         </div>
-        <div class="rounded border border-dark bg-light" id='stockArea'> </div>
     </div>
 </body>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
 <script src="/js/techan.js"></script>
-<script src="/js/stocktool.js?v=27"></script>
+<script src="/js/stocktool.js?v=46"></script>
 <script>
 var socket;
 var stockDataUrl = '';
@@ -184,6 +107,7 @@ var initGraph = function() {
         ma5: $('#ma5Checkbox').prop('checked'),
         ma10: $('#ma10Checkbox').prop('checked'),
         ma20: $('#ma20Checkbox').prop('checked'),
+        ma40: $('#ma40Checkbox').prop('checked'),
         ma60: $('#ma60Checkbox').prop('checked'),
     }
 
@@ -193,6 +117,7 @@ var initGraph = function() {
 $('#applyStockConfig').click(function() {
     if (stockDataUrl == '')
         return;
+
     showApplyLoading();
     initGraph();
     setTimeout(function() {

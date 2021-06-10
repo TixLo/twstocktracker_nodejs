@@ -1,3 +1,16 @@
+// 股票資料索引值
+var STOCK_DATE = 0;
+var STOCK_OPEN_PRICE = 1;
+var STOCK_HIGHEST_PRICE = 2;
+var STOCK_LOWEST_PRICE = 3;
+var STOCK_CLOSE_PRICE = 4;
+var STOCK_VOLUME = 6;
+var STOCK_MA5 = 7;
+var STOCK_MA10 = 8;
+var STOCK_MA20 = 9;
+var STOCK_MA40 = 10;
+var STOCK_MA60 = 11;
+
 // 設定線圖區域的 w/h/margin
 var margin = { top: 40, right: 120, bottom: 30, left: 80 };
 var width = $('#stockArea').width() - margin.left - margin.right;
@@ -75,16 +88,6 @@ function removeStockGraph() {
 }
 
 function initStockGraph(dataFile, options) {
-    // 股票資料索引值
-    var STOCK_DATE = 0;
-    var STOCK_OPEN_PRICE = 1;
-    var STOCK_HIGHEST_PRICE = 2;
-    var STOCK_LOWEST_PRICE = 3;
-    var STOCK_CLOSE_PRICE = 4;
-    var STOCK_VOLUME = 6;
-    var STOCK_5MA = 10; 
-    var STOCK_20MA = 11; 
-    var STOCK_60MA = 12; 
 
     // init
     dynamicText = [];
@@ -136,6 +139,7 @@ function initStockGraph(dataFile, options) {
     var sma5 = techan.plot.sma().xScale(x).yScale(y);
     var sma10 = techan.plot.sma().xScale(x).yScale(y);
     var sma20 = techan.plot.sma().xScale(x).yScale(y);
+    var sma40 = techan.plot.sma().xScale(x).yScale(y);
     var sma60 = techan.plot.sma().xScale(x).yScale(y);
 
     var h = 50;
@@ -144,6 +148,11 @@ function initStockGraph(dataFile, options) {
     h = addDynamicText('最高', h);
     h = addDynamicText('最低', h);
     h = addDynamicText('收盤', h);
+    h = addDynamicText('MA5', h);
+    h = addDynamicText('MA10', h);
+    h = addDynamicText('MA20', h);
+    h = addDynamicText('MA40', h);
+    h = addDynamicText('MA60', h);
 
     var stockName = '';
     var stockId = '';
@@ -152,6 +161,7 @@ function initStockGraph(dataFile, options) {
         var jsonData = data["Data"];
         stockName = data.Name;
         stockId = data.StockId;
+        data = calcMA(data);
         data = jsonData.map(function(d) {
             return {
                 date: parseDate(d[STOCK_DATE]),
@@ -160,9 +170,11 @@ function initStockGraph(dataFile, options) {
                 low: +d[STOCK_LOWEST_PRICE],
                 close: +d[STOCK_CLOSE_PRICE],
                 volume: +d[STOCK_VOLUME],
-                MA5: +d[STOCK_5MA],
-                MA20: +d[STOCK_20MA],
-                MA60: +d[STOCK_60MA]
+                ma5: +d[STOCK_MA5],
+                ma10: +d[STOCK_MA10],
+                ma20: +d[STOCK_MA20],
+                ma40: +d[STOCK_MA40],
+                ma60: +d[STOCK_MA60],
             };
         }).sort(function(a, b) {
             return d3.ascending(accessor.d(a), accessor.d(b));
@@ -206,6 +218,11 @@ function initStockGraph(dataFile, options) {
             svg.select("g.sma.ma-20").datum(techan.indicator.sma().period(20)(data)).call(sma20);
             startMAPos = drawMAIndicator('20MA', startMAPos, '#9E9E00');
         }
+        if (options.ma40) {
+            svg.append("g").attr("class", "sma ma-40");
+            svg.select("g.sma.ma-40").datum(techan.indicator.sma().period(40)(data)).call(sma40);
+            startMAPos = drawMAIndicator('40MA', startMAPos, '#F0F000');
+        }
         if (options.ma60) {
             svg.append("g").attr("class", "sma ma-60");
             svg.select("g.sma.ma-60").datum(techan.indicator.sma().period(60)(data)).call(sma60);
@@ -248,8 +265,46 @@ function move(coords) {
             dynamicText[2].svgText.text(dynamicText[2].label + ':' + allStockData[i].high);
             dynamicText[3].svgText.text(dynamicText[3].label + ':' + allStockData[i].low);
             dynamicText[4].svgText.text(dynamicText[4].label + ':' + allStockData[i].close);
-
+            dynamicText[5].svgText.text(dynamicText[5].label + ':' + allStockData[i].ma5);
+            dynamicText[6].svgText.text(dynamicText[6].label + ':' + allStockData[i].ma10);
+            dynamicText[7].svgText.text(dynamicText[7].label + ':' + allStockData[i].ma20);
+            dynamicText[8].svgText.text(dynamicText[8].label + ':' + allStockData[i].ma40);
+            dynamicText[9].svgText.text(dynamicText[9].label + ':' + allStockData[i].ma60);
         }
     }
 }
 
+function calcMA(data) {
+    let ma = function(array, val, len) {
+        if (array.length >= len)
+            array.splice(0,1);
+        array.push(val);
+        if (array.length < len)
+            return 0;
+        let sum = 0;
+        for (let i=0 ; i<len ; i++) {
+            sum += array[i];
+        }
+        return (sum / len).toFixed(2);
+    }
+
+    let ma5Data = [];
+    let ma10Data = [];
+    let ma20Data = [];
+    let ma40Data = [];
+    let ma60Data = [];
+    for (let i=0 ; i<data.Data.length ; i++) {
+        let ma5 = ma(ma5Data, data.Data[i][STOCK_CLOSE_PRICE], 5);
+        let ma10 = ma(ma10Data, data.Data[i][STOCK_CLOSE_PRICE], 10);
+        let ma20 = ma(ma20Data, data.Data[i][STOCK_CLOSE_PRICE], 20);
+        let ma40 = ma(ma40Data, data.Data[i][STOCK_CLOSE_PRICE], 40);
+        let ma60 = ma(ma60Data, data.Data[i][STOCK_CLOSE_PRICE], 60);
+
+        data.Data[i].push(ma5);
+        data.Data[i].push(ma10);
+        data.Data[i].push(ma20);
+        data.Data[i].push(ma40);
+        data.Data[i].push(ma60);
+    }
+    return data;
+}
