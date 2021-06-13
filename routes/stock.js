@@ -153,7 +153,7 @@ router.get('/warehouse/stocks', async function(req, res, next) {
     res.end(JSON.stringify(data));
 });
 
-router.get('/monitorStocks', async function(req, res, next) {
+router.post('/monitorStocks', async function(req, res, next) {
     if (await cookies.check(req.cookies) == false) {
         res.end('');
         return;

@@ -65,7 +65,7 @@
 </body>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
 <script src="/js/techan.js"></script>
-<script src="/js/stocktool.js?v=46"></script>
+<script src="/js/stocktool.js?v=47"></script>
 <script>
 var socket;
 var stockDataUrl = '';
@@ -84,6 +84,10 @@ var updateMonitorStocks = function() {
         url: '/stock/monitorStocks'
     });
 }
+
+$('#monitorStocks').on('load-success.bs.table', function (e,data) {
+    console.log(data);
+});
 
 var showApplyLoading = function() {
     $("#waitingForApply").modal({
@@ -127,9 +131,10 @@ $('#applyStockConfig').click(function() {
 
 $('#applySelectStock').click(function() {
     let focusStockId = undefined;
-    $('#monitorStocks > tbody  > tr').each(function(){
-        if ($(this).attr('class') != undefined && $(this).attr('class').indexOf('selected') >= 0) {
-            focusStockId = $(this).find('td').slice(2,3).text();
+
+    $('input[name="monitorStock"]').each(function() {
+        if ($(this).prop('checked')) {
+            focusStockId = $(this).val();
         }
     });
 
@@ -137,7 +142,6 @@ $('#applySelectStock').click(function() {
         showPopup('請選擇一檔要觀察的股票');
         return;
     }
-    console.log(focusStockId);
 
     let fixedDeltaMS = 0;
     if ($("#oneMonth").is(":checked")) {
@@ -221,14 +225,66 @@ $('#applySelectStock').click(function() {
 
 });
 
-$('#monitorStocks').on('dbl-click-row.bs.table', function (row, $element, field) {
-    console.log('dbl-click');
-    console.log(row);
-})
+var genMonitorStocksTable = function(rows) {
+    let html = '';
+    for (let i=0 ; i<rows.length ; i++) {
+        let s = rows[i];
+        console.log(s);
+        //begin
+        html += '<tr>\n';
 
+        // checkbox
+        html += '<td>\n';
+        html += '<input type="radio" name="monitorStock" value="' + s.stock + '">\n';
+        html += '</td>\n';
+
+        // index
+        html += '<td>' + (i + 1) + '</td>\n';
+
+        // stock no
+        html += '<td>' + s.stock + '</td>\n';
+
+        // stock name
+        html += '<td>' + s.name + '</td>\n';
+
+        // data count
+        html += '<td>' + s.dataCount + '</td>\n';
+
+        // deal count
+        html += '<td>0</td>\n';
+
+        // win rate
+        html += '<td>0</td>\n';
+
+        // profit
+        html += '<td>0</td>\n';
+
+        // profit
+        html += '<td>-</td>\n';
+
+        //end
+        html += '</tr>\n';
+    }
+    $('#monitorStocksBody').html(html);
+}
+
+var loadMonitorStocks = function() {
+    showApplyLoading();
+    $.ajax({
+        type: 'POST',
+        url: '/stock/monitorStocks',
+        success: function(data){
+            semu(data);
+            genMonitorStocksTable(data.rows);
+        }
+    }).always(function(){
+        hideApplyLoading();
+    });
+}
 
 $(function() {
-    updateMonitorStocks();
+    //updateMonitorStocks();
+    loadMonitorStocks();
 
     registryOnlineCB(updateOnline);
     socket = initSocketIO();

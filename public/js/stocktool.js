@@ -161,7 +161,6 @@ function initStockGraph(dataFile, options) {
         var jsonData = data["Data"];
         stockName = data.Name;
         stockId = data.StockId;
-        data = calcMA(data);
         data = jsonData.map(function(d) {
             return {
                 date: parseDate(d[STOCK_DATE]),
@@ -307,4 +306,9 @@ function calcMA(data) {
         data.Data[i].push(ma60);
     }
     return data;
+}
+
+function semu(data) {
+    console.log('semu');
+    console.log(data);
 }
