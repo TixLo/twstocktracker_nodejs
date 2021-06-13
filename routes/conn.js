@@ -15,7 +15,7 @@ var broadcast = function(cmd, data) {
         return;
     }
     logger.info('broadcast: ' + cmd);
-    logger.info(data);
+    //logger.info(data);
     io.sockets.emit(cmd, data);
 }
 
@@ -34,7 +34,7 @@ var addStock = function(socket, data) {
     if (io == undefined) {
         return;
     }
-    logger.info(data);
+    //logger.info(data);
     if (TWSE.pushFetchStock(socket, data.stock, data.type) == false) {
         addStockResult(socket, 'duplicated');
     }
@@ -79,7 +79,7 @@ var hi = function(socket, data) {
 }
 
 var deleteSavedStock = async function(socket, data) {
-    logger.info(data);
+    //logger.info(data);
     if (data.length > 0) {
         for (let i=0 ; i<data.length ; i++) {
             await stockdb.delStock(data[i]);
@@ -99,7 +99,7 @@ var refreshAllStock = async function(socket) {
 
     // 3. retrigger fetch process for each stock
     let allStocks = await stockdb.getAllStock();
-    logger.info(allStocks);
+    //logger.info(allStocks);
     if (allStocks.data != undefined) {
         for (let i=0 ; i<allStocks.data.length ; i++) {
             logger.info(allStocks.data[i]);
@@ -113,14 +113,14 @@ var refreshAllStock = async function(socket) {
 }
 
 var addMonitorStocks = async function(socket, data) {
-    logger.info(data);
+    //logger.info(data);
     if (data == undefined || data.length == 0) {
         socket.emit('addMonitorStocksOK', {});
         return;
     }
 
     let stocks = await stockdb.getStock(data);
-    logger.info(stocks);
+    //logger.info(stocks);
     if (stocks.data == undefined) {
         socket.emit('addMonitorStocksOK', {});
         return;
@@ -128,7 +128,7 @@ var addMonitorStocks = async function(socket, data) {
 
     logger.info('socket.usrname: ' + socket.username);
     let user = await stockdb.getUserByName(socket.username);
-    logger.info(user);
+    //logger.info(user);
     if (user.data == undefined) {
         socket.emit('addMonitorStocksOK', {});
         return;
@@ -143,7 +143,7 @@ var addMonitorStocks = async function(socket, data) {
 }
 
 var delUsers = async function(socket, data){
-    logger.info(data);
+    //logger.info(data);
     if (data == undefined || data.length == 0) {
         socket.emit('delUsersOK', {});
         return;
@@ -154,7 +154,7 @@ var delUsers = async function(socket, data){
 }
 
 var clearUsers = async function(socket, data){
-    logger.info(data);
+    //logger.info(data);
     if (data == undefined || data.length == 0) {
         socket.emit('delUsersOK', {});
         return;

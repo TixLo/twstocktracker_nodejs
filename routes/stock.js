@@ -104,12 +104,16 @@ router.get('/warehouse/stocks', async function(req, res, next) {
         return;
     }
 
-    let user = await stockdb.getUserByName(req.cookies.profile.username);
-    if (user.data == undefined) {
-        res.render('loginFailure', {msg: '資料出錯, 請重新燈入'});
-        return;
+    
+    let userStocks = undefined;
+    if (req.cookies.profile.username != 'ADMIN') {
+        let user = await stockdb.getUserByName(req.cookies.profile.username);
+        if (user.data == undefined) {
+            res.render('loginFailure', {msg: '資料出錯, 請重新燈入'});
+            return;
+        }
+        userStocks = await stockdb.getUserStocks(user.data[0]);
     }
-    let userStocks = await stockdb.getUserStocks(user.data[0]);
 
     let stocks = [];
     let allStocks = await stockdb.getAllStock();
@@ -118,7 +122,7 @@ router.get('/warehouse/stocks', async function(req, res, next) {
             let item = allStocks.data[i];
 
             let saved = false;
-            if (userStocks.length != 0) {
+            if (userStocks != undefined && userStocks.length != 0) {
                 for (let j=0 ; j<userStocks.length ; j++) {
                     if (item.stock_id == userStocks[j].stock_id) {
                         saved = true;
@@ -144,7 +148,6 @@ router.get('/warehouse/stocks', async function(req, res, next) {
 
     let data = {};
     data.rows = stocks;
-    //console.log(stocks);
     res.set({ 'content-type': 'application/json; charset=utf-8' });
     //logger.info(data);
     res.end(JSON.stringify(data));
