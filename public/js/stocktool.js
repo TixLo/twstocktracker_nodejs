@@ -1,16 +1,3 @@
-// 股票資料索引值
-var STOCK_DATE = 0;
-var STOCK_OPEN_PRICE = 1;
-var STOCK_HIGHEST_PRICE = 2;
-var STOCK_LOWEST_PRICE = 3;
-var STOCK_CLOSE_PRICE = 4;
-var STOCK_VOLUME = 6;
-var STOCK_MA5 = 7;
-var STOCK_MA10 = 8;
-var STOCK_MA20 = 9;
-var STOCK_MA40 = 10;
-var STOCK_MA60 = 11;
-
 // 設定線圖區域的 w/h/margin
 var margin = { top: 40, right: 120, bottom: 30, left: 80 };
 var width = $('#stockArea').width() - margin.left - margin.right;
@@ -161,6 +148,7 @@ function initStockGraph(dataFile, options) {
         var jsonData = data["Data"];
         stockName = data.Name;
         stockId = data.StockId;
+        data = calcMA(data);
         data = jsonData.map(function(d) {
             return {
                 date: parseDate(d[STOCK_DATE]),
@@ -308,7 +296,3 @@ function calcMA(data) {
     return data;
 }
 
-function semu(data) {
-    console.log('semu');
-    console.log(data);
-}

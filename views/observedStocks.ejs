@@ -1,5 +1,5 @@
 <div>
-    <div class="rounded border border-dark bg-light" style="height: 400px">
+    <div class="rounded border border-dark bg-light table-responsive text-nowrap" style="height: 400px">
     <table
         id="monitorStocks" 
         data-toggle="table" 
@@ -7,15 +7,15 @@
         data-thead-classes="table-dark">
         <thead>
             <tr>
-                <th data-radio="true"></th>
-                <th data-field="id">#</th>
+                <th data-field="id" data-sortable="true">#</th>
                 <th data-field="stock" data-sortable="true">股票代號</th>
                 <th data-field="name" data-sortable="true">股票名稱</th>
                 <th data-field="dataCount" data-sortable="true">資料筆數</th>
                 <th data-field="dealCount" data-sortable="true">交易次數</th>
                 <th data-field="win" data-sortable="true">勝率(%)</th>
-                <th data-field="profit" data-sortable="true">損益(%)</th>
+                <th data-field="profit" data-sortable="true">總價差</th>
                 <th data-field="status" data-sortable="true">狀態</th>
+                <th></th>
             </tr>
         </thead>
         <tbody id="monitorStocksBody">
@@ -24,8 +24,6 @@
     </div>
     <div class="d-flex justify-content-between">
         <div>
-            <span class=''>請選擇要觀察的股票</span>
-            <input type="button" id="applySelectStock" value="確認" class="btn btn-dark m-2" />
         </div>
         <div>
             <span class=''>變更觀察中的股票</span>

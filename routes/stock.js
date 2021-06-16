@@ -4,6 +4,7 @@ var logger = require('log4js').getLogger('stock');
 var router = express.Router();
 var stockdb = require('../controller/stockdb');
 var TWSE = require('../controller/TWSE');
+var TWSEFetch = require('../controller/TWSEFetch');
 var cookies = require('./cookies');
 var format = require('string-format');
 
@@ -318,6 +319,9 @@ router.post('/genstock', async function(req, res, next) {
         "成交量",      //6
     ];
     let stockDataJson = [];
+    //
+    // append stock data from DB
+    //
     for (let i=0 ; i<stock.length ; i++) {
         let d = [];
 
@@ -340,6 +344,30 @@ router.post('/genstock', async function(req, res, next) {
         //logger.info(d);
         stockDataJson.push(d);
     }
+
+    //FIXED ME!
+    await TWSEFetch.fetchRealTimeStockPrice(); 
+    //---
+
+    //
+    // append stock data from DB
+    //
+    let rtStocks = TWSEFetch.getTodayRTStocks();
+    //logger.info(rtStocks);
+    //logger.info('stockJson.StockId: ' + stockJson.StockId);
+    if (rtStocks[stockJson.StockId] != undefined && stockDataJson.length > 0) {
+        let d = [];
+        //d.push(rtStocks[stockJson.StockId].date);
+        d.push('RealTime');
+        d.push(0);
+        d.push(0);
+        d.push(0);
+        d.push(rtStocks[stockJson.StockId].price);
+        d.push(0);
+        d.push(0);
+        stockJson.RT = d;
+    }
+    
     stockJson.Data = stockDataJson;
 
     //

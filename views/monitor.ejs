@@ -16,34 +16,7 @@
     <% include banner %>
 </head>
 <body>
-    <div class="modal" id="waitingForApply" tabindex="-1" role="dialog" aria-labelledby="waitingAddStockLabel">
-        <div class="modal-dialog modal-sm" role="document">
-            <div class="modal-content">
-                <div class="modal-body text-center">
-                    <div class="loader"></div>
-                    <div clas="loader-txt">
-                        <p>正在套用您的設定....</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="modal fade" id="confirmErroorModal" tabindex="-1" role="dialog" aria-labelledby="confirmErroorModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="confirmErroorModalLabel">通知</h5>
-                </div>
-                <div class="modal-body">
-                    <label id="errMsg"></label>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-dark" data-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    </div>
+    <% include modal %>
     <div class="card">
         <div class="card-header">參數設定</div>
         <div class="card-body">
@@ -62,10 +35,18 @@
             <% include candlestick %>
         </div>
     </div>
+    <div class="card">
+        <div class="card-header">歷史交易紀錄</div>
+        <div class="card-body">
+            <% include tradeHistory %>
+        </div>
+    </div>
 </body>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
 <script src="/js/techan.js"></script>
-<script src="/js/stocktool.js?v=47"></script>
+<script src="/js/stockconfig.js"></script>
+<script src="/js/calculator.js"></script>
+<script src="/js/stocktool.js"></script>
 <script>
 var socket;
 var stockDataUrl = '';
@@ -78,12 +59,6 @@ function showPopup(msg) {
 $("#editStock").click(function() {
     window.location.href = "/stock/warehouse";
 });
-
-var updateMonitorStocks = function() {
-    $('#monitorStocks').bootstrapTable('refresh', {
-        url: '/stock/monitorStocks'
-    });
-}
 
 $('#monitorStocks').on('load-success.bs.table', function (e,data) {
     console.log(data);
@@ -129,20 +104,21 @@ $('#applyStockConfig').click(function() {
     },1000);
 });
 
-$('#applySelectStock').click(function() {
-    let focusStockId = undefined;
+//$('#applySelectStock').click(function() {
+//    let focusStockId = undefined;
 
-    $('input[name="monitorStock"]').each(function() {
-        if ($(this).prop('checked')) {
-            focusStockId = $(this).val();
-        }
-    });
+//    $('input[name="monitorStock"]').each(function() {
+//        if ($(this).prop('checked')) {
+//            focusStockId = $(this).val();
+//        }
+//    });
 
-    if (focusStockId == undefined) {
-        showPopup('請選擇一檔要觀察的股票');
-        return;
-    }
+//    if (focusStockId == undefined) {
+//        showPopup('請選擇一檔要觀察的股票');
+//        return;
+//    }
 
+var applySelectStock = function(focusStockId) {
     let fixedDeltaMS = 0;
     if ($("#oneMonth").is(":checked")) {
         fixedDeltaMS = 30 * 24 * 60 * 60 * 1000;
@@ -223,20 +199,14 @@ $('#applySelectStock').click(function() {
         hideApplyLoading();
     });
 
-});
+}
 
 var genMonitorStocksTable = function(rows) {
     let html = '';
     for (let i=0 ; i<rows.length ; i++) {
         let s = rows[i];
-        console.log(s);
         //begin
         html += '<tr>\n';
-
-        // checkbox
-        html += '<td>\n';
-        html += '<input type="radio" name="monitorStock" value="' + s.stock + '">\n';
-        html += '</td>\n';
 
         // index
         html += '<td>' + (i + 1) + '</td>\n';
@@ -251,16 +221,23 @@ var genMonitorStocksTable = function(rows) {
         html += '<td>' + s.dataCount + '</td>\n';
 
         // deal count
-        html += '<td>0</td>\n';
+        html += '<td id="dealCount_' + s.stock + '"></td>\n';
 
         // win rate
-        html += '<td>0</td>\n';
+        html += '<td id="winRate_' + s.stock + '"></td>\n';
 
         // profit
-        html += '<td>0</td>\n';
+        html += '<td id="profit_' + s.stock + '"></td>\n';
 
-        // profit
-        html += '<td>-</td>\n';
+        // status
+        html += '<td id="status_' + s.stock + '"></td>\n';
+
+        // button
+        html += '<td>\n';
+        html += '<img class="Image pt-0 pb-0" '
+              + 'src="../images/details.png" width="26" height="26" '
+              + 'onClick="applySelectStock(\'' + s.stock + '\')">\n';
+        html += '</td>\n';
 
         //end
         html += '</tr>\n';
@@ -274,8 +251,8 @@ var loadMonitorStocks = function() {
         type: 'POST',
         url: '/stock/monitorStocks',
         success: function(data){
-            semu(data);
             genMonitorStocksTable(data.rows);
+            semu(data.rows);
         }
     }).always(function(){
         hideApplyLoading();
@@ -283,7 +260,6 @@ var loadMonitorStocks = function() {
 }
 
 $(function() {
-    //updateMonitorStocks();
     loadMonitorStocks();
 
     registryOnlineCB(updateOnline);

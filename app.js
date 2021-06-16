@@ -21,6 +21,7 @@ var logger = log4js.getLogger();
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
+app.disable('view cache');
 
 app.use(log4js.connectLogger(log4js.getLogger("http"), { level: 'auto' }));
 app.use(express.json());

@@ -2,9 +2,14 @@ var request = require('sync-request');
 var log4js = require('log4js');
 var logger = log4js.getLogger('TWSE');
 var sysTool = require('../utils/sysTool.js');
+var stockdb = require('../controller/stockdb');
+var format = require('string-format');
 
-var historyEndYYYY = 2010;
-var historyEndMM = 1;
+format.extend(String.prototype, {})
+
+var todayRTStocks = {};
+var historyEndYYYY = 2021;
+var historyEndMM = 5;
 
 var get = function(date, stockId) {
     var url = 'http://www.twse.com.tw/exchangeReport/STOCK_DAY?date=';
@@ -88,7 +93,64 @@ var getHistory = function(stockId, stepCB = undefined) {
     return stockArray;
 }
 
+var fetchRealTimeStockPrice = async function() {
+    let allStocks = await stockdb.getAllStock();
+    if (allStocks.data == undefined) {
+        return;
+    }
+
+    let key = '';
+    for (let i=0 ; i<allStocks.data.length ; i++) {
+        let item = allStocks.data[i];
+        //logger.info(item);
+        if (item.stock_type == '上市') {
+            key += 'tse_' + item.stock_no+ '.tw';
+        }
+
+        if (i < allStocks.data.length - 1)
+            key += '|';
+    }
+
+    let url = 'https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch={0}&json=1&delay=0';
+    url = url.format(key);
+    logger.info('url: ' + url);
+
+    let msgArray = [];
+    let sysDate = '';
+    try {
+        var res = request('GET', url);
+        var json = JSON.parse(res.getBody('utf8'));
+        //logger.info('fetch Done');
+        //logger.info(json);
+        if (json == undefined || json.msgArray == undefined) {
+            return;
+        }
+        msgArray = json.msgArray;
+        sysDate = json.queryTime.sysDate;
+     }
+    catch (e) {
+        return;
+    }
+
+    let ID = "c";
+    let PRICE = "z";
+    for (let i=0 ; i<msgArray.length ; i++) {
+        todayRTStocks[msgArray[i][ID]] = {
+            date: sysDate.substring(0,4) 
+                    + '/' + sysDate.substring(4,6)
+                    + '/' + sysDate.substring(6,8),
+            price: parseFloat(msgArray[i][PRICE])
+        }
+    }
+}
+
+var getTodayRTStocks = function() {
+    return todayRTStocks;
+}
+
 module.exports.get = get;
 module.exports.getHistory = getHistory;
 module.exports.getHistoryDate = getHistoryDate;
 module.exports.getCurrMonth = getCurrMonth;
+module.exports.fetchRealTimeStockPrice = fetchRealTimeStockPrice;
+module.exports.getTodayRTStocks = getTodayRTStocks;
