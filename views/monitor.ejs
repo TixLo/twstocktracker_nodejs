@@ -104,20 +104,6 @@ $('#applyStockConfig').click(function() {
     },1000);
 });
 
-//$('#applySelectStock').click(function() {
-//    let focusStockId = undefined;
-
-//    $('input[name="monitorStock"]').each(function() {
-//        if ($(this).prop('checked')) {
-//            focusStockId = $(this).val();
-//        }
-//    });
-
-//    if (focusStockId == undefined) {
-//        showPopup('請選擇一檔要觀察的股票');
-//        return;
-//    }
-
 var applySelectStock = function(focusStockId) {
     let fixedDeltaMS = 0;
     if ($("#oneMonth").is(":checked")) {
@@ -192,6 +178,7 @@ var applySelectStock = function(focusStockId) {
             console.log(res);
             if (res.dataUrl != undefined && res.dataUrl != '') {
                 stockDataUrl = res.dataUrl;
+                genTradeHistory(focusStockId);
                 initGraph();
             }
         }
@@ -199,6 +186,29 @@ var applySelectStock = function(focusStockId) {
         hideApplyLoading();
     });
 
+}
+
+var focusTradeStockPeriod = function(stockId, begin, end) {
+    let data = {
+        stock: stockId,
+        startTime: begin,
+        endTime: end
+    };
+    showApplyLoading();
+    $.ajax({
+        type: 'POST',
+        url: '/stock/genstock',
+        data: data,
+        success: function(res){
+            console.log(res);
+            if (res.dataUrl != undefined && res.dataUrl != '') {
+                stockDataUrl = res.dataUrl;
+                initGraph();
+            }
+        }
+    }).always(function(){
+        hideApplyLoading();
+    });
 }
 
 var genMonitorStocksTable = function(rows) {

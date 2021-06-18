@@ -169,15 +169,15 @@ function calc(stock) {
         buy: [
             {
                 A: {type: 'PRICE'},
-                E: '<=',
-                B: {type: 'CONST', value: 888}
+                E: '<',
+                B: {type: 'CONST', value: 58}
             }
         ],
         sell: [
             {
                 A: {type: 'PRICE'},
-                E: '=',
-                B: {type: 'CONST', value: 989}
+                E: '>',
+                B: {type: 'CONST', value: 62}
             }
         ]
     };
@@ -333,8 +333,92 @@ function semu(data) {
     for (const [key, value] of Object.entries(semuStocks)) {
         newSemuStocks[key] = calc(value);
 
-        // 3. update table
+        // 3. update observedStock table
         updateTable(newSemuStocks[key]);
     }
-
 }
+
+function genTradeHistory(stockId) {
+    //console.log('genTradeHistory');
+    //console.log(semuStocks);
+
+    if (semuStocks[stockId] == undefined)
+        return;
+
+    let shiftDate = function(date, days) {
+        let t = new Date(date).getTime();
+        t += (days * (24 * 60 * 60 * 1000));
+        let t2 = new Date(t);
+        let yyyy = t2.getFullYear().toString();
+        let mm = (t2.getMonth() + 1).toString();
+        let dd = t2.getDate().toString();
+        return mm + '/' + dd + '/' + yyyy;
+    }
+
+    let html = '';
+    let tradeCost = 0.585; //%
+    let totalProfit = 0;
+    let totalDelta = 0;
+    let totalCost = 0;
+    let dayOneCost = 0;
+    for (let i=0 ; i<semuStocks[stockId].trades.length ; i++) {
+        trade = semuStocks[stockId].trades[i];
+        
+        let deltaPrice = trade.sell.price - trade.buy.price;
+
+        //begin
+        html += '<tr>\n';
+
+        html += '<td>'+ (i + 1) + '</td>\n';
+
+        html += '<td>'+ trade.buy.date + ' -> ' + trade.sell.date + '</td>\n';
+
+        html += '<td>'+ trade.buy.price + ' -> ' + trade.sell.price 
+             + '  (價差: ' + deltaPrice.toFixed(2) + ')</td>\n';
+
+        let profit = (deltaPrice) * 100.0 / trade.buy.price - tradeCost;
+        html += '<td>'+ profit.toFixed(2) + '%</td>\n';
+        totalProfit += profit;
+        if (dayOneCost == 0) {
+            dayOneCost = trade.buy.price;
+            totalCost = trade.buy.price;
+        }
+        totalCost += deltaPrice * (1.0 - tradeCost / 100.0);
+
+        // button
+        let b = shiftDate(trade.buy.date, -14);
+        let e = shiftDate(trade.sell.date, 14);
+        console.log(b + '->' + e);
+        html += '<td>\n';
+        html += '<img class="Image pt-0 pb-0" '
+              + 'src="../images/details.png" width="26" height="26" '
+              + 'onClick="focusTradeStockPeriod(\'' + stockId + '\',\'' + b + '\',\'' + e + '\')">\n';
+        html += '</td>\n';
+
+        //end
+        html += '</tr>\n';
+    }
+
+    $('#tradeHistoryBody').html(html);
+    $('#tradeTotalCount').text(semuStocks[stockId].trades.length);
+    $('#tradeTotalProfit').text(totalProfit.toFixed(2) + '%');
+
+    let startDateStr = semuStocks[stockId].Data[0][STOCK_DATE];
+    let endDateStr = semuStocks[stockId].Data[semuStocks[stockId].Data.length - 2][STOCK_DATE];
+
+    let startDate = new Date(startDateStr);
+    let endDate = new Date(endDateStr);
+
+    let msPerYear = 365 * 24 * 60 * 60 * 1000.0;
+    let year = (endDate.getTime() - startDate.getTime()) / msPerYear;
+
+    if (totalCost <= 0 || year < 1.0) {
+        $('#tradeYearProfit').text(' - ');
+        return;
+    }
+    //console.log('totalCost: ' + totalCost);
+    //console.log('dayOneCost: ' + dayOneCost);
+    let yearProfit = (Math.pow(totalCost/dayOneCost, 1.0 / year) - 1) * 100.0;
+    $('#tradeYearProfit').text(yearProfit.toFixed(2) + '%');
+}
+
