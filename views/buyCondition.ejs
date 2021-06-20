@@ -1,16 +1,84 @@
+<div class="d-flex justify-content-between">
+    <div class="">
+        <span class="ml-3">請選擇交易條件</span>
+        [<span class="m-1 text-primary">種類</span>]
+        [<span class="m-1 text-primary">條件</span>]
+        [<span class="m-1 text-primary">數值</span>]
+        [<span class="m-1 text-primary">連續達成天數</span>]
+        <span class="ml-1">. [新增]/[移除]修改交易條件</span>
+    </div>
+    <div class="">
+    </div>
+</div>
 <table class="table table-borderless">
     <tbody>
         <tr>
-            <td>
-1
+            <td class="align-middle" style="width: 55%">
+                <div class="form-inline">
+                    <select class="form-control m-2" id="buyA">
+                        <option value=''>- 選擇 -</option>
+                        <option value='PRICE'>股價</option>
+                        <option value='5MA'>5MA</option>
+                        <option value='10MA'>10MA</option>
+                        <option value='20MA'>20MA</option>
+                        <option value='40MA'>40MA</option>
+                        <option value='60MA'>60MA</option>
+                        <option value='K9'>K9</option>
+                        <option value='D9'>D9</option>
+                    </select>
+                    <select class="form-control m-2" id="buyEQ">
+                        <option value=''>- 選擇 -</option>
+                        <option value='>'>></option>
+                        <option value='>='>>=</option>
+                        <option value='<'><</option>
+                        <option value='<='><=</option>
+                        <option value='='>=</option>
+                        <option value='!='>!=</option>
+                    </select>
+                    <select class="form-control m-2" id="buyB">
+                        <option value=''>- 選擇 -</option>
+                        <option value='CONST'>定值</option>
+                        <option value='5MA'>5MA</option>
+                        <option value='10MA'>10MA</option>
+                        <option value='20MA'>20MA</option>
+                        <option value='40MA'>40MA</option>
+                        <option value='60MA'>60MA</option>
+                        <option value='K9'>K9</option>
+                        <option value='D9'>D9</option>
+                    </select>
+                    <input type="input" class="form-control" id="buyBValue" style="width: 80px" hidden/>
+                    <select class="form-control m-2" id="buyC">
+                        <option value=1 selected>1 天</option>
+                        <option value=2>2 天</option>
+                        <option value=3>3 天</option>
+                        <option value=4>4 天</option>
+                        <option value=5>5 天</option>
+                        <option value=6>6 天</option>
+                        <option value=7>7 天</option>
+                    </select>
+                </div>
             </td>
-            <td style="width: 20%">
-                <button type="button" class="btn btn-light text-center border border-dark" style="background-color:transparent" >
-                    <span class="p-2">></span>
+            <td class="align-middle" style="width: 12%">
+                <button type="button" class="btn btn-light text-center border border-dark" style="background-color:transparent" id="buyCondAdd">
+                    <span class="p-2">新增</span>
+                </button>
+                <br>
+                <button type="button" class="btn btn-light text-center border border-dark" style="background-color:transparent" id="buyCondDel">
+                    <span class="p-2">移除</span>
                 </button>
             </td>
-            <td>
-3
+            <td class="align-middle" style="width: 38%">
+                <table class="table rounded border table-hover">
+                    <thead class="table-info">
+                        <th></th>
+                        <th>
+                            <span class="ml-3">滿足以下條件成立時<span class="text-primary">買入</span></span>
+                        </th>
+                        <th></th>
+                    </thead>
+                    <tbody id="buyCondList">
+                    </tbody>
+                </table>
             </td>
         </tr>
     </tbody>

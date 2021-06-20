@@ -6,11 +6,14 @@
     <link href="https://unpkg.com/bootstrap-table@1.18.3/dist/bootstrap-table.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker3.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.18/css/bootstrap-select.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.0.4/popper.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script src="https://unpkg.com/bootstrap-table@1.18.3/dist/bootstrap-table.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.18/js/bootstrap-select.min.js"></script>
     <script src="/js/common.js"></script>
     <link rel="stylesheet" href="/css/techanStyle.css?v=13">
     <% include banner %>
@@ -47,9 +50,11 @@
 <script src="/js/stockconfig.js"></script>
 <script src="/js/calculator.js"></script>
 <script src="/js/stocktool.js"></script>
+<script src="/js/buyCondCtrl.js"></script>
 <script>
 var socket;
 var stockDataUrl = '';
+var buyAlgo = [];
 
 function showPopup(msg) {
     $('#errMsg').text(msg);
@@ -61,7 +66,7 @@ $("#editStock").click(function() {
 });
 
 $('#monitorStocks').on('load-success.bs.table', function (e,data) {
-    console.log(data);
+    //console.log(data);
 });
 
 var showApplyLoading = function() {
@@ -80,7 +85,6 @@ var initGraph = function() {
     if (stockDataUrl == '')
         return;
 
-    //d3.select("svg").remove();
     removeStockGraph();
     let opt = {
         ma5: $('#ma5Checkbox').prop('checked'),
@@ -167,7 +171,7 @@ var applySelectStock = function(focusStockId) {
         };
     }
 
-    console.log(data);
+    //console.log(data);
 
     showApplyLoading();
     $.ajax({
@@ -175,7 +179,7 @@ var applySelectStock = function(focusStockId) {
         url: '/stock/genstock',
         data: data,
         success: function(res){
-            console.log(res);
+            //console.log(res);
             if (res.dataUrl != undefined && res.dataUrl != '') {
                 stockDataUrl = res.dataUrl;
                 genTradeHistory(focusStockId);
@@ -200,7 +204,7 @@ var focusTradeStockPeriod = function(stockId, begin, end) {
         url: '/stock/genstock',
         data: data,
         success: function(res){
-            console.log(res);
+            //console.log(res);
             if (res.dataUrl != undefined && res.dataUrl != '') {
                 stockDataUrl = res.dataUrl;
                 initGraph();
@@ -269,6 +273,12 @@ var loadMonitorStocks = function() {
     });
 }
 
+$('#resemu').on('click', function(){
+    removeStockGraph();
+    semuStocks = {};
+    loadMonitorStocks();
+});
+
 $(function() {
     loadMonitorStocks();
 
@@ -276,6 +286,8 @@ $(function() {
     socket = initSocketIO();
 
     $('.datepicker').datepicker();
+
+    regEvent();
 });
 </script>
 </html>

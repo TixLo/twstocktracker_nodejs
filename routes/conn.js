@@ -4,7 +4,7 @@ var stockdb = require('../controller/stockdb');
 
 var io = undefined;
 
-var map = {};
+var people = {};
 
 var init = function(data) {
     io = data;
@@ -20,7 +20,7 @@ var broadcast = function(cmd, data) {
 }
 
 var onlineNotify = function() {
-    broadcast('online', {count: Object.keys(map).length});
+    broadcast('online', {count: Object.keys(people).length});
 }
 
 var addStockResult = function(socket, status) {
@@ -45,21 +45,21 @@ var connect = function(socket) {
 }
 
 var disconnect = function(socket) {
-    logger.info('disconnect: ' + socket.username + ', ' + map[socket.username]);
-    if (map[socket.username] != undefined) {
-        map[socket.username]--;
-        if (map[socket.username] == 0)
-            delete map[socket.username];
+    logger.info('disconnect: ' + socket.username + ', ' + people[socket.username]);
+    if (people[socket.username] != undefined) {
+        people[socket.username]--;
+        if (people[socket.username] == 0)
+            delete people[socket.username];
     }
-    //logger.info(map);
+    //logger.info(people);
     onlineNotify(); 
 }
 
 var hi = function(socket, data) {
-    if (map[data.username] == undefined)
-        map[data.username] = 0;
-    map[data.username]++;
-    //logger.info(map);
+    if (people[data.username] == undefined)
+        people[data.username] = 0;
+    people[data.username]++;
+    //logger.info(people);
     onlineNotify(); 
 
     socket.username = data.username;

@@ -3,7 +3,7 @@ var TRADING_WAITING_SELL = 1;
 var semuStocks = {};
 
 function fetch(stockId, url) {
-    console.log(stockId + ',' + url);
+    //console.log(stockId + ',' + url);
 
     let stockData = undefined;
     $.ajax({
@@ -48,7 +48,7 @@ function getAllStockData(data) {
                 fetch(stockId, stockUrl);
         });
     }
-    console.log(semuStocks);
+    //console.log(semuStocks);
 }
 
 function getValue(stock, type, val) {
@@ -69,18 +69,27 @@ var equation = {
     '!=': function (A,B) { return A != B; },
 };
 
-function comp(stock, A, E, B) {
-    if (equation[E] == undefined)
+function comp(stock, cond) {
+    if (equation[cond.E] == undefined)
         return false;
 
-    let AVal = getValue(stock, A.type, A.value);
-    let BVal = getValue(stock, B.type, B.value);
+    let AVal = getValue(stock, cond.A.type, cond.A.value);
+    let BVal = getValue(stock, cond.B.type, cond.B.value);
     if (AVal == undefined || BVal == undefined)
         return false;
 
-    //console.log('AVal: ' + AVal + ', BVal: ' + BVal);
-    //console.log(equation[E]);
-    return equation[E](AVal, BVal);
+    console.log('AVal: ' + AVal + ',' + cond.E + ', BVal: ' + BVal + ', C: ' + cond.C + ', V: ' + cond.val);
+    if (equation[cond.E](AVal, BVal)) {
+        cond.val++;
+        if (cond.C == cond.val) {
+            return true;
+        }
+        return false;
+    }
+    else {
+        cond.val = 0;
+        return false;
+    }
 }
 
 function tradingBuy(stock) {
@@ -91,7 +100,7 @@ function tradingBuy(stock) {
 
     let count = 0;
     stock.algo.buy.forEach(function(cond){
-        if (comp(stock, cond.A, cond.E, cond.B)) {
+        if (comp(stock, cond)) {
             count++;
         }
     });
@@ -106,7 +115,7 @@ function tradingSell(stock) {
 
     let count = 0;
     stock.algo.sell.forEach(function(cond){
-        if (comp(stock, cond.A, cond.E, cond.B)) {
+        if (comp(stock, cond)) {
             count++;
         }
     });
@@ -166,21 +175,32 @@ function calc(stock) {
 
     //for test
     stock.algo = {
-        buy: [
-            {
-                A: {type: 'PRICE'},
-                E: '<',
-                B: {type: 'CONST', value: 58}
-            }
-        ],
-        sell: [
-            {
-                A: {type: 'PRICE'},
-                E: '>',
-                B: {type: 'CONST', value: 62}
-            }
-        ]
+        buy: [],
+        sell: []
+        //buy: [
+        //    {
+        //        A: {type: 'PRICE'},
+        //        E: '<',
+        //        B: {type: 'CONST', value: 900},
+        //        C: 2
+        //    }
+        //],
+        //sell: [
+        //    {
+        //        A: {type: 'PRICE'},
+        //        E: '>',
+        //        B: {type: 'CONST', value: 62},
+        //        C: 3
+        //   }
+        //]
     };
+    stock.algo.buy = buyAlgo;
+    console.log(stock.algo);
+    if (stock.algo.buy.length > 0) {
+        stock.algo.buy.forEach(function(item){
+            item.val = 0;
+        });
+    }
 
     let ma = function(array, val, len) {
         if (array.length >= len)
@@ -270,6 +290,14 @@ function calc(stock) {
                 stock.sell = snapshot();
                 incTrade();
             }
+            else if (i == stock.Data.length - 1) {
+                stock.status = '[持有中] 買入日期:' + stock.buy.date
+                             + ', 買入價格:' + stock.buy.price
+                             + ', 目前價格:' + stock.closePrice;
+                stock.sell = snapshot();
+                stock.sell.date = 'RealTime';
+                incTrade();
+            }
         }
 
         ///////////////////////////////////////////////////////
@@ -277,6 +305,7 @@ function calc(stock) {
         ///////////////////////////////////////////////////////
         push2NewData(stock.Data[i]);
     }
+
     stock.Data = newData;
     //console.log(stock);
     return stock;
@@ -312,9 +341,15 @@ function updateTable(stock) {
         }
     }
     else if (stock.buy != undefined && stock.sell != undefined) {
-        let status = '[下車!!] 買入(' + stock.buy.date + ', ' + stock.buy.price
+        let status = '';
+        if (stock.sell.date == 'RealTime') {
+            status = stock.status;
+        }
+        else {
+            status = '[下車!!] 買入(' + stock.buy.date + ', ' + stock.buy.price
                     + ') -> 目前價格: ' + stock.sell.price
                     + ', 價差: ' + (stock.sell.price - stock.buy.price).toFixed(2); 
+        }
         $('#status_' + stock.StockId).text(status);
         $('#status_' + stock.StockId).attr('class', 'text-primary');
        
@@ -371,7 +406,10 @@ function genTradeHistory(stockId) {
 
         html += '<td>'+ (i + 1) + '</td>\n';
 
-        html += '<td>'+ trade.buy.date + ' -> ' + trade.sell.date + '</td>\n';
+        if (trade.sell.date == 'RealTime')
+            html += '<td>'+ trade.buy.date + ' -> 持有中！</td>\n';
+        else
+            html += '<td>'+ trade.buy.date + ' -> ' + trade.sell.date + '</td>\n';
 
         html += '<td>'+ trade.buy.price + ' -> ' + trade.sell.price 
              + '  (價差: ' + deltaPrice.toFixed(2) + ')</td>\n';
