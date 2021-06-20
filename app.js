@@ -1,7 +1,9 @@
 var createError = require('http-errors');
 var express = require('express');
+var cron = require('node-cron');
 var path = require('path');
 var cookieParser = require('cookie-parser');
+var shell = require('shelljs');
 
 var loginRouter = require('./routes/login');
 var stockRouter = require('./routes/stock');
@@ -36,6 +38,22 @@ app.use('/stock', stockRouter);
 app.use('/users', usersRouter);
 app.use('/controller', controllerRouter);
 
+cron.schedule('59 23 * * *', function() {
+    //
+    // backup DB everyday
+    //
+    let t = new Date();
+    logger.info('backup mysql database...');
+    let backupFile = t.getFullYear().toString() + (t.getMonth() + 1).toString() + t.getDate();
+    let command = 'mysqldump -u root -p17quajzm stock > ../mysqlBackup/' + backupFile + '_stock.sql';
+    logger.info(command);
+    if (shell.exec(command).code !== 0) {
+        shell.exit(1);
+    }
+    else {
+        shell.echo('Database backup complete');
+    }
+});
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
