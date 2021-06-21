@@ -81,7 +81,7 @@ function comp(stock, cond) {
     console.log('AVal: ' + AVal + ',' + cond.E + ', BVal: ' + BVal + ', C: ' + cond.C + ', V: ' + cond.val);
     if (equation[cond.E](AVal, BVal)) {
         cond.val++;
-        if (cond.C == cond.val) {
+        if (cond.val >= cond.C) {
             return true;
         }
         return false;
@@ -195,7 +195,8 @@ function calc(stock) {
         //]
     };
     stock.algo.buy = buyAlgo;
-    console.log(stock.algo);
+    stock.algo.sell = sellAlgo;
+    //console.log(stock.algo);
     if (stock.algo.buy.length > 0) {
         stock.algo.buy.forEach(function(item){
             item.val = 0;

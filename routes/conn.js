@@ -55,7 +55,7 @@ var disconnect = function(socket) {
     onlineNotify(); 
 }
 
-var hi = function(socket, data) {
+var hi = async function(socket, data) {
     if (people[data.username] == undefined)
         people[data.username] = 0;
     people[data.username]++;
@@ -63,19 +63,33 @@ var hi = function(socket, data) {
     onlineNotify(); 
 
     socket.username = data.username;
+
+    let algo = await stockdb.getAlgoSettingsByUserName(data.username);
+    //logger.info(algo);
+
+    let testing = undefined;
+    let historyDictStock = undefined;
     let historyDict = TWSE.getHistoryDict();
     for (let i=0 ; i<historyDict.length ; i++) {
         if (historyDict[i].testing != true)
             continue;
         if (historyDict[i].socket.username == socket.username) {
             testing = true;
-            socket.emit('setup', {
-                testing: testing,
-                stock: historyDict[i].stock
-            });
+            historyDictStock = historyDict[i].stock;
+            //socket.emit('setup', {
+            //    testing: testing,
+            //    stock: historyDict[i].stock,
+            //    settings: algo.settings
+            //});
             break;
         }
     }
+
+    socket.emit('setup', {
+        testing: testing,
+        stock: historyDictStock,
+        settings: algo.data[0].settings
+    });
 }
 
 var deleteSavedStock = async function(socket, data) {

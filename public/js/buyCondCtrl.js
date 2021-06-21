@@ -113,7 +113,7 @@ var delBuyCond = function(index) {
     updateBuyCond();
 }
 
-var regEvent = function() {
+var regBuyEvent = function() {
     $('#buyA').on('change', function(){
         buyAEvt($(this).val());
     });

@@ -393,4 +393,41 @@ router.post('/genstock', async function(req, res, next) {
     }
 });
 
+router.post('/saveConfig', async function(req, res, next) {
+    if (await cookies.check(req.cookies) == false) {
+        res.end('');
+        return;
+    }
+
+    //let settings = JSON.stringify(req.body);
+    let settings = req.body;
+    logger.info(req.body.settings);
+    let user = await stockdb.getUserByName(req.cookies.profile.username);
+    if (user.data == undefined) {
+        res.render('loginFailure', {msg: '資料出錯, 請重新燈入'});
+        return;
+    }
+    user = user.data[0];
+    //logger.info(user);
+
+    let algo = await stockdb.getAlgoSettings(user);
+    if (algo.data == undefined) {
+        algo = undefined;
+    }
+    else {
+        algo = algo.data[0];
+    }
+    //logger.info(algo);
+
+    if (algo) {
+        await stockdb.updateAlgoSettings(algo, req.body.settings);
+    }
+    else {
+        await stockdb.addAlgoSettings(user, req.body.settings);
+    }
+
+    res.set({ 'content-type': 'application/json; charset=utf-8' });
+    res.end('{}');
+});
+
 module.exports = router;

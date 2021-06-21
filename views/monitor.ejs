@@ -51,10 +51,12 @@
 <script src="/js/calculator.js"></script>
 <script src="/js/stocktool.js"></script>
 <script src="/js/buyCondCtrl.js"></script>
+<script src="/js/sellCondCtrl.js"></script>
 <script>
 var socket;
 var stockDataUrl = '';
 var buyAlgo = [];
+var sellAlgo = [];
 
 function showPopup(msg) {
     $('#errMsg').text(msg);
@@ -279,15 +281,50 @@ $('#resemu').on('click', function(){
     loadMonitorStocks();
 });
 
+$('#saveConfig').on('click', function() {
+    let data = {
+        buy: buyAlgo,
+        sell: sellAlgo
+    };
+    console.log(data);
+    console.log(JSON.stringify(data));
+    showApplyLoading();
+    $.ajax({
+        type: 'POST',
+        url: '/stock/saveConfig',
+        data: {
+            settings: JSON.stringify(data)
+        },
+        success: function(data){
+        }
+    }).always(function(){
+        hideApplyLoading();
+    });
+});
+
+var setupFunc = function(json) {
+    console.log(json);
+    if (json.settings == undefined)
+        return;
+    let algo = JSON.parse(json.settings);
+    console.log(algo);
+    buyAlgo = algo.buy;
+    sellAlgo = algo.sell;
+    updateBuyCond();
+    updateSellCond();
+}
+
 $(function() {
     loadMonitorStocks();
 
     registryOnlineCB(updateOnline);
+    registrySetupCB(setupFunc);
     socket = initSocketIO();
 
     $('.datepicker').datepicker();
 
-    regEvent();
+    regBuyEvent();
+    regSellEvent();
 });
 </script>
 </html>

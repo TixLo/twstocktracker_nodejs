@@ -368,6 +368,36 @@ var delUsers = async function(users){
     }
 }
 
+var addAlgoSettings = async function(user, settings) {
+    let sql = "INSERT INTO " 
+            + "algo (" 
+            + "tracker_id, settings"
+            + ") VALUES ("
+            + "'" + user.tracker_id + "', '" + settings + "'"
+            + ")";
+    return await exec(sql);
+}
+
+var updateAlgoSettings = async function(algo, settings) {
+    let sql = "UPDATE algo SET settings='" + settings + "' WHERE algo_id=" + algo.algo_id + ";"; 
+    return await exec(sql);
+}
+
+var getAlgoSettings = async function(user) {
+    let sql = 'SELECT * FROM algo WHERE tracker_id="' + user.tracker_id + '"';
+    return await exec(sql);
+}
+
+var getAlgoSettingsByUserName = async function(userName) {
+    let user = await getUserByName(userName);
+    if (user.data == undefined)
+        return undefined;
+    user = user.data[0];
+
+    let sql = 'SELECT * FROM algo WHERE tracker_id="' + user.tracker_id + '"';
+    return await exec(sql);
+}
+
 module.exports.addUser = addUser;
 module.exports.getAllUsers = getAllUsers;
 module.exports.getUserByName = getUserByName;
@@ -386,3 +416,7 @@ module.exports.addUserStock = addUserStock;
 module.exports.removeUserStock = removeUserStock;
 module.exports.getUserStocks = getUserStocks;
 module.exports.delUsers = delUsers;
+module.exports.addAlgoSettings = addAlgoSettings;
+module.exports.getAlgoSettings = getAlgoSettings;
+module.exports.getAlgoSettingsByUserName = getAlgoSettingsByUserName;
+module.exports.updateAlgoSettings = updateAlgoSettings;

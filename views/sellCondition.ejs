@@ -15,7 +15,7 @@
         <tr>
             <td class="align-middle" style="width: 55%">
                 <div class="form-inline">
-                    <select class="form-control m-2" id="buyA">
+                    <select class="form-control m-2" id="sellA">
                         <option value=''>- 選擇 -</option>
                         <option value='PRICE'>股價</option>
                         <option value='5MA'>5MA</option>
@@ -26,7 +26,7 @@
                         <option value='K9'>K9</option>
                         <option value='D9'>D9</option>
                     </select>
-                    <select class="form-control m-2" id="buyEQ">
+                    <select class="form-control m-2" id="sellEQ">
                         <option value=''>- 選擇 -</option>
                         <option value='>'>></option>
                         <option value='>='>>=</option>
@@ -35,7 +35,7 @@
                         <option value='='>=</option>
                         <option value='!='>!=</option>
                     </select>
-                    <select class="form-control m-2" id="buyB">
+                    <select class="form-control m-2" id="sellB">
                         <option value=''>- 選擇 -</option>
                         <option value='CONST'>定值</option>
                         <option value='5MA'>5MA</option>
@@ -46,8 +46,8 @@
                         <option value='K9'>K9</option>
                         <option value='D9'>D9</option>
                     </select>
-                    <input type="input" class="form-control" id="buyBValue" style="width: 80px" hidden/>
-                    <select class="form-control m-2" id="buyC">
+                    <input type="input" class="form-control" id="sellBValue" style="width: 80px" hidden/>
+                    <select class="form-control m-2" id="sellC">
                         <option value=1 selected>1 天</option>
                         <option value=2>2 天</option>
                         <option value=3>3 天</option>
@@ -59,7 +59,7 @@
                 </div>
             </td>
             <td class="align-middle" style="width: 12%">
-                <button type="button" class="btn btn-light text-center border border-dark" style="background-color:transparent" id="buyCondAdd">
+                <button type="button" class="btn btn-light text-center border border-dark" style="background-color:transparent" id="sellCondAdd">
                     <span class="p-2">新增</span>
                 </button>
             </td>
@@ -68,11 +68,11 @@
                     <thead class="table-info">
                         <th></th>
                         <th>
-                            <span class="ml-3">滿足以下條件成立時<span class="text-primary">買入</span></span>
+                            <span class="ml-3">滿足以下條件成立時<span class="text-primary">賣出</span></span>
                         </th>
                         <th></th>
                     </thead>
-                    <tbody id="buyCondList">
+                    <tbody id="sellCondList">
                     </tbody>
                 </table>
             </td>
