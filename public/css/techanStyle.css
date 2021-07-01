@@ -30,41 +30,41 @@ path.volume {
 }
 
 path.volume.up {
-    fill: #FF0000;
+    fill: #B5B5B5;
 }
 
 path.volume.down {
-    fill: #00AA00;
+    fill: #B5B5B5;
 }
 
 path.volume.equal {
-    fill: #DDDDDD;
+    fill: #B5B5B5;
 }
 
 .ma-5 path.line {
     stroke: #1f77b4;
     fill: none;
-    stroke-width: 2;
+    stroke-width: 1;
 }
 .ma-10 path.line {
     stroke: #aec7e8;
     fill: none;
-    stroke-width: 2;
+    stroke-width: 1;
 }
 .ma-20 path.line {
     stroke: #9E9E00;
     fill: none;
-    stroke-width: 2;
+    stroke-width: 1;
 }
 .ma-40 path.line {
     stroke: #F0F000;
     fill: none;
-    stroke-width: 2;
+    stroke-width: 1;
 }
 .ma-60 path.line {
     stroke: #FF30FF;
     fill: none;
-    stroke-width: 2;
+    stroke-width: 1;
 }
 
 .x.axis line {
@@ -94,6 +94,15 @@ path.volume.equal {
 
 .coords {
     font-size: 16px;
+}
+
+.moveLabel {
+    font-size: 16px;
+}
+
+.moveBuyLabel {
+    font-size: 16px;
+    fill: '#00AA00';
 }
 
 .fixed-table-body {
@@ -140,4 +149,99 @@ legend.stockSetTitle {
     text-align: left !important;
     width:auto;
     border-bottom:none;
+}
+
+.y.annotation.left.buy path {
+    fill: #0000FF;
+}
+
+.y.annotation.left.sell path {
+    fill: #FF0000;
+}
+
+.x.annotation.bottom.buy path {
+    fill: #00AA00;
+}
+
+.x.annotation.bottom.sell path {
+    fill: #FF0000;
+}
+
+path.buyline {
+    fill: none;
+    stroke: #00AA00;
+    stroke-width: 1px;
+    stroke-dasharray: 2, 2;
+}
+
+path.sellline {
+    fill: none;
+    stroke: #FF0000;
+    stroke-width: 1px;
+    stroke-dasharray: 2, 2;
+}
+
+circle.buy {
+    fill: none;
+    stroke: #0000FF;
+    stroke-width: 1px;
+}
+
+text.buy {
+    font-size: 18px;
+    fill: #00AA00;
+}
+
+text.sell {
+    font-size: 18px;
+    fill: #FF0000;
+}
+
+path.macd {
+    stroke: #000000;
+    fill: none;
+    stroke-width: 1;
+}
+
+path.line {
+    fill: none;
+    stroke: #000000;
+    stroke-width: 1;
+}
+
+#k9 path.line {
+    fill: none;
+    stroke: #0000FF;
+    stroke-width: 1;
+}
+
+#d9 path.line {
+    fill: none;
+    stroke: #E69500;
+    stroke-width: 1;
+}
+
+.tradearrow path.tradearrow {
+    stroke: none;
+}
+
+.tradearrow path.buy {
+    fill: #0000FF;
+}
+
+.tradearrow path.sell {
+    fill: #9900FF;
+}
+
+.tradearrow path.highlight {
+    fill: none;
+    stroke-width: 2;
+}
+
+.tradearrow path.highlight.buy {
+    stroke: #0000FF;
+}
+
+.tradearrow path.highlight.sell {
+    stroke: #9900FF;
 }

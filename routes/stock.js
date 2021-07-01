@@ -155,17 +155,20 @@ router.get('/warehouse/stocks', async function(req, res, next) {
 });
 
 router.post('/monitorStocks', async function(req, res, next) {
+logger.info('111');
     if (await cookies.check(req.cookies) == false) {
         res.end('');
         return;
     }
 
+logger.info('222');
     let user = await stockdb.getUserByName(req.cookies.profile.username);
     if (user.data == undefined) {
         res.render('loginFailure', {msg: '資料出錯, 請重新燈入'});
         return;
     }
 
+logger.info('333');
     let allStocks = await stockdb.getUserStocks(user.data[0]);
     let stocks = [];
     for (let i=0 ; i<allStocks.length ; i++) {
@@ -317,6 +320,14 @@ router.post('/genstock', async function(req, res, next) {
         "收盤價",      //4
         "漲跌",        //5
         "成交量",      //6
+        "MA5",         //7
+        "MA10",        //8
+        "MA20",        //9
+        "MA40",        //10
+        "MA60",        //11
+        "K9",          //12
+        "D9",          //13
+        "RSV",         //14
     ];
     let stockDataJson = [];
     //
@@ -338,7 +349,15 @@ router.post('/genstock', async function(req, res, next) {
         d.push(stock[i].stock_lowest_price);
         d.push(stock[i].stock_close_price);
         d.push(stock[i].stock_delta_price);
-        d.push(stock[i].stock_deal_num);
+        d.push(stock[i].stock_num);
+        d.push(stock[i].ma5);
+        d.push(stock[i].ma10);
+        d.push(stock[i].ma20);
+        d.push(stock[i].ma40);
+        d.push(stock[i].ma60);
+        d.push(stock[i].k9);
+        d.push(stock[i].d9);
+        d.push(stock[i].rsv);
 
         //logger.info(stock[i]);
         //logger.info(d);
@@ -363,6 +382,14 @@ router.post('/genstock', async function(req, res, next) {
         d.push(0);
         d.push(0);
         d.push(rtStocks[stockJson.StockId].price);
+        d.push(0);
+        d.push(0);
+        d.push(0);
+        d.push(0);
+        d.push(0);
+        d.push(0);
+        d.push(0);
+        d.push(0);
         d.push(0);
         d.push(0);
         stockJson.RT = d;

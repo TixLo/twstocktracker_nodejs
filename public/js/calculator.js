@@ -78,7 +78,7 @@ function comp(stock, cond) {
     if (AVal == undefined || BVal == undefined)
         return false;
 
-    console.log('AVal: ' + AVal + ',' + cond.E + ', BVal: ' + BVal + ', C: ' + cond.C + ', V: ' + cond.val);
+    //console.log('AVal: ' + AVal + ',' + cond.E + ', BVal: ' + BVal + ', C: ' + cond.C + ', V: ' + cond.val);
     if (equation[cond.E](AVal, BVal)) {
         cond.val++;
         if (cond.val >= cond.C) {
@@ -379,7 +379,7 @@ function genTradeHistory(stockId) {
     //console.log(semuStocks);
 
     if (semuStocks[stockId] == undefined)
-        return;
+        return undefined;
 
     let shiftDate = function(date, days) {
         let t = new Date(date).getTime();
@@ -427,11 +427,16 @@ function genTradeHistory(stockId) {
         // button
         let b = shiftDate(trade.buy.date, -14);
         let e = shiftDate(trade.sell.date, 14);
-        console.log(b + '->' + e);
+        //console.log(b + '->' + e);
         html += '<td>\n';
         html += '<img class="Image pt-0 pb-0" '
               + 'src="../images/details.png" width="26" height="26" '
-              + 'onClick="focusTradeStockPeriod(\'' + stockId + '\',\'' + b + '\',\'' + e + '\')">\n';
+              + 'onClick="focusTradeStockPeriod(\'' + stockId + '\',\'' + b + '\',\'' + e + '\','
+              + (trade.buy.price.toFixed(2)) + ','  // buy price
+              + (trade.sell.price.toFixed(2)) + ','  // sell price
+              + '\'' + (trade.buy.date) + '\','  // buy date index
+              + '\'' + (trade.sell.date) + '\''  // sell date index
+              + ')">\n';
         html += '</td>\n';
 
         //end
@@ -453,11 +458,12 @@ function genTradeHistory(stockId) {
 
     if (totalCost <= 0 || year < 1.0) {
         $('#tradeYearProfit').text(' - ');
-        return;
+        return semuStocks[stockId].trades;
     }
     //console.log('totalCost: ' + totalCost);
     //console.log('dayOneCost: ' + dayOneCost);
     let yearProfit = (Math.pow(totalCost/dayOneCost, 1.0 / year) - 1) * 100.0;
     $('#tradeYearProfit').text(yearProfit.toFixed(2) + '%');
+    return semuStocks[stockId].trades;
 }
 

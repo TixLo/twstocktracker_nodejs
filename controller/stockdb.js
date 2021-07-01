@@ -13,6 +13,19 @@ var pool = mysql.createPool({
 
 var connected = false;
 
+let ma = function(array, val, len) {
+    if (array.length >= len)
+        array.splice(0,1);
+    array.push(val);
+    if (array.length < len)
+        return 0;
+    let sum = 0;
+    for (let i=0 ; i<len ; i++) {
+        sum += array[i];
+    }
+    return (sum / len).toFixed(2);
+}
+
 var exec = function(sql, values) {
     //logger.info('exec: ' + sql);
     return new Promise(( resolve, reject ) => {
@@ -240,7 +253,7 @@ var querySavedStock = async function(stockId) {
     return await exec(sql);
 }
 
-var addStock = async function(stockJson, type) {
+var addStock = async function(stockJson, type, tmp) {
     //logger.info(stockJson);
     let stockId = stockJson.stockId;
     let stockName = stockJson.name;
@@ -298,10 +311,54 @@ var addStock = async function(stockJson, type) {
             stockDeltaPrice : priceToFloat(item[7]),
             stockNum : currencyToLong(item[8]),
             stockId : stockId,
-            stockDbId : stock.data[0].stock_id
+            stockDbId : stock.data[0].stock_id,
+            rsv: 0,
+            k9: 0,
+            d9: 0,
+            ma5: 0.0,
+            ma10: 0.0,
+            ma20: 0.0,
+            ma40: 0.0,
+            ma60: 0.0
         };
         //logger.info(data);
         let sql = '';
+
+        //
+        // calculate MA
+        //
+        data.ma5 = ma(tmp.ma5, data.stockClosePrice, 5);
+        data.ma10 = ma(tmp.ma10, data.stockClosePrice, 10);
+        data.ma20 = ma(tmp.ma20, data.stockClosePrice, 20);
+        data.ma40 = ma(tmp.ma40, data.stockClosePrice, 40);
+        data.ma60 = ma(tmp.ma60, data.stockClosePrice, 60);
+
+        //
+        // calculate RSI/K9/D9
+        //
+        tmp.pool.push(data.stockClosePrice);
+        if (tmp.pool.length > 9)
+            tmp.pool.splice(0, 1);
+
+        if (tmp.pool.length < 9) {
+            data.rsv = 0;
+            data.k9 = 0;
+            data.d9 = 0;
+        }
+        else {
+            let maxP = -1;
+            let minP = 10000;
+            tmp.pool.forEach(function(p){
+                maxP = Math.max(maxP, p);
+                minP = Math.min(minP, p);
+            });
+            data.rsv = Math.round(((data.stockClosePrice - minP) * 100) / (maxP - minP));
+            data.k9 = Math.round((tmp.prevK9 * 0.6667) + (data.rsv * 0.3333));
+            data.d9 = Math.round((tmp.prevD9 * 0.6667) + (data.k9 * 0.3333));
+            //logger.info(data.rsv + ',' + data.k9 + ',' + data.d9 + ',' + tmp.prevK9 + ',' + tmp.prevD9);
+            tmp.prevK9 = data.k9;
+            tmp.prevD9 = data.d9;
+        }
 
         //
         // check existed or not
@@ -321,7 +378,15 @@ var addStock = async function(stockJson, type) {
                     + "stock_id,"
                     + "stock_lowest_price,"
                     + "stock_num,"
-                    + "stock_open_price"
+                    + "stock_open_price,"
+                    + "rsv,"
+                    + "k9,"
+                    + "d9,"
+                    + "ma5,"
+                    + "ma10,"
+                    + "ma20,"
+                    + "ma40,"
+                    + "ma60"
                     + ") VALUES ("
                     + "{stockDate},"
                     + "{stockClosePrice},"
@@ -332,7 +397,15 @@ var addStock = async function(stockJson, type) {
                     + "{stockDbId},"
                     + "{stockLowestPrice},"
                     + "{stockNum},"
-                    + "{stockOpenPrice}"
+                    + "{stockOpenPrice},"
+                    + "{rsv},"
+                    + "{k9},"
+                    + "{d9},"
+                    + "{ma5},"
+                    + "{ma10},"
+                    + "{ma20},"
+                    + "{ma40},"
+                    + "{ma60}"
                     + ")";
             try {
                 sql = sql.format(data);

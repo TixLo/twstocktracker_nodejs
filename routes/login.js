@@ -18,7 +18,12 @@ router.get('/', async function(req, res, next) {
                 req.socket.remoteAddress ||
                 null;
     logger.info('login from ' + ip);
-    //res.clearCookie('profile');
+    // temporarily for adsense
+    cookies.create(res, 'tt');
+    redirect(res, homePage);
+    return;
+
+    res.clearCookie('profile');
     if (await cookies.check(req.cookies) == true) {
         redirect(res,homePage);
     }
@@ -32,7 +37,11 @@ router.get('/login', async function(req, res, next) {
                 req.socket.remoteAddress ||
                 null;
     logger.info('login from ' + ip);
-    res.render('login');
+    //temporarily for adsense
+    cookies.create(res, 'tt');
+    redirect(res, homePage);
+    return;
+    //res.render('login');
 });
 
 router.get('/logout', async function(req, res, next) {

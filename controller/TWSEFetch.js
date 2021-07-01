@@ -8,8 +8,8 @@ var format = require('string-format');
 format.extend(String.prototype, {})
 
 var todayRTStocks = {};
-var historyEndYYYY = 2010;
-var historyEndMM = 1;
+var historyEndYYYY = 2021;
+var historyEndMM = 5;
 
 var get = function(date, stockId) {
     var url = 'http://www.twse.com.tw/exchangeReport/STOCK_DAY?date=';

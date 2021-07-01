@@ -76,19 +76,19 @@ var hi = async function(socket, data) {
         if (historyDict[i].socket.username == socket.username) {
             testing = true;
             historyDictStock = historyDict[i].stock;
-            //socket.emit('setup', {
-            //    testing: testing,
-            //    stock: historyDict[i].stock,
-            //    settings: algo.settings
-            //});
             break;
         }
+    }
+
+    let settings = {};
+    if (algo != undefined && algo.data != undefined) {
+        settings = JSON.parse(algo.data[0].settings);
     }
 
     socket.emit('setup', {
         testing: testing,
         stock: historyDictStock,
-        settings: algo.data[0].settings
+        settings: settings
     });
 }
 

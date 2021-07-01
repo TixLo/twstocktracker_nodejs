@@ -504,8 +504,7 @@ module.exports = function() {
       rsi = function(d) { return d.rsi; },
       overbought = function(d) { return d.overbought; },
       oversold = function(d) { return d.oversold; },
-      middle = function(d) { return d.middle; },
-      rsi9 = function(d) { return d.rsi9; };
+      middle = function(d) { return d.middle; };
 
   function accessor(d) {
     return accessor.r(d);
@@ -520,12 +519,6 @@ module.exports = function() {
   accessor.rsi = function(_) {
     if (!arguments.length) return rsi;
     rsi = _;
-    return bind();
-  };
-
-  accessor.rsi9 = function(_) {
-    if (!arguments.length) return rsi9;
-    rsi9 = _;
     return bind();
   };
 
@@ -550,7 +543,6 @@ module.exports = function() {
   function bind() {
     accessor.d = date;
     accessor.r = rsi;
-    accessor.r9 = rsi9;
     accessor.ob = overbought;
     accessor.os = oversold;
     accessor.m = middle;
@@ -1498,7 +1490,7 @@ module.exports = function(indicatorMixin, accessor_ohlc, indicator_ema) {  // In
         fastAverage = indicator_ema(),
         slowAverage = indicator_ema();
 
-    function indicator(data, cb) {
+    function indicator(data) {
       var minFastSlow = Math.max(fast, slow) - 1,
           minCount = minFastSlow + signal - 1;
 
@@ -1510,14 +1502,8 @@ module.exports = function(indicatorMixin, accessor_ohlc, indicator_ema) {  // In
         var macd = fastAverage.average(p.accessor(d)) - slowAverage.average(p.accessor(d)),
             signalValue = i >= minFastSlow ? signalLine.average(macd) : null;
 
-        if(i >= minCount) {
-            cb({idx: i, macd: macd});
-            return datum(p.accessor.d(d), macd, signalValue, macd - signalValue, 0);
-        }
-        else {
-            cb({idx: i, macd: 0});
-            return datum(p.accessor.d(d));
-        }
+        if(i >= minCount) return datum(p.accessor.d(d), macd, signalValue, macd - signalValue, 0);
+        else return datum(p.accessor.d(d));
 
       }).filter(function(d) { return d.macd !== null; });
     }
@@ -1562,18 +1548,13 @@ module.exports = function(indicatorMixin, accessor_ohlc, indicator_ema) {  // In
         middle = 50,
         oversold = 30,
         lossAverage = indicator_ema(),
-        gainAverage = indicator_ema(),
-        pool = [];
+        gainAverage = indicator_ema();
 
-    function indicator(data, val) {
+    function indicator(data) {
       lossAverage.accessor(indicator.accessor()).period(p.period).init();
       gainAverage.accessor(indicator.accessor()).period(p.period).init();
 
       return data.map(function(d, i) {
-        if (val == 'RSV') {
-          return datum(p.accessor.d(d), data[i].rsv, middle, overbought, oversold);
-        }
-
         if(i < 1) return datum(p.accessor.d(d));
 
         var difference = p.accessor(d) - p.accessor(data[i-1]),
@@ -1617,8 +1598,8 @@ module.exports = function(indicatorMixin, accessor_ohlc, indicator_ema) {  // In
 };
 
 function datum(date, rsi, middle, overbought, oversold) {
-  if(rsi) return { date: date, rsi: rsi, middle: middle, overbought: overbought, oversold: oversold};
-  else return { date: date, rsi: null, middle: null, overbought: null, oversold: null};
+  if(rsi) return { date: date, rsi: rsi, middle: middle, overbought: overbought, oversold: oversold };
+  else return { date: date, rsi: null, middle: null, overbought: null, oversold: null };
 }
 },{}],32:[function(require,module,exports){
 'use strict';

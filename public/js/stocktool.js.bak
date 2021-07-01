@@ -17,8 +17,7 @@ var fullY = d3.scaleLinear().range([height, 0]);
 var y = d3.scaleLinear().range([height - volumeH - KDH, 0]);
 var yLeftAxis = d3.axisLeft(y);
 var yVolume = d3.scaleLinear().range([height, height - volumeH]);
-var yKD = d3.scaleLinear().range([height - volumeH - 5, height - volumeH - KDH + 5]).domain([0,100]);
-
+var yKD = d3.scaleLinear().range([height - volumeH, height - volumeH - KDH]);
 
 // 資料日期格式 "2019/01/28"
 var parseDate = d3.timeParse("%Y/%m/%d");
@@ -38,13 +37,6 @@ var timeTopAnnotation = techan.plot.axisannotation()
     .height(22)
     .orient('top');
 
-var volumeAxis = d3.axisLeft(yVolume)
-        .ticks(3)
-        .tickFormat(d3.format(",.3s"));
-
-var KDAxis = d3.axisLeft(yKD)
-        .ticks(3)
-        .tickFormat(d3.format(",.0s"));
 
 // 紀錄滑鼠移到的資料
 var allStockData = undefined;
@@ -132,9 +124,7 @@ function initStockGraph(dataFile, options) {
         .attr("d", line(firstAxisData))
         .attr("stroke", "black")
         .attr("stroke-width", "1px")
-        .attr("stroke-dasharray", "2")
         .attr("fill", "none");
-
     var secondAxisData = [ 
         [0, height - volumeH], 
         [width, height - volumeH]
@@ -143,7 +133,6 @@ function initStockGraph(dataFile, options) {
         .attr("d", line(secondAxisData))
         .attr("stroke", "black")
         .attr("stroke-width", "1px")
-        .attr("stroke-dasharray", "2")
         .attr("fill", "none");
 
     // setup candlestick
@@ -174,16 +163,7 @@ function initStockGraph(dataFile, options) {
     var sma40 = techan.plot.sma().xScale(x).yScale(y);
     var sma60 = techan.plot.sma().xScale(x).yScale(y);
 
-    // trade mark
-    var tradearrow = techan.plot.tradearrow()
-            .xScale(x)
-            .yScale(y)
-            .y(function(d) {
-                //if(d.type === 'buy') return y(d.low)+5;
-                //if(d.type === 'sell') return y(d.high)-5;
-                //else return y(d.price);
-                return y(d.price);
-            });
+    var rsv = techan.plot.close().xScale(x).yScale(y);
 
     var h = 50;
     h = addDynamicText('', h);
@@ -244,33 +224,6 @@ function initStockGraph(dataFile, options) {
         y.domain(techan.scale.plot.ohlc(data, accessor).domain());
         var Y = d3.scaleLinear().range([height - volumeH - KDH, 0]).domain(y.domain());
 
-        // KD
-        var k9 = d3.line().curve(d3.curveCardinal)
-            .x(function(d) { return x(d.date); })
-            .y(function(d) { return yKD(d.k9); });
-        svg.append("g").attr("id", "k9").append("path").attr("class", "line");
-        svg.select("g#k9 path").datum(data).attr("d", k9);
-        svg.append('text')
-            .style("text-anchor", "begin")
-            .attr("class", "coords")
-            .style('fill', '#0000FF')
-            .attr("x", 10)
-            .attr("y", height - volumeH - KDH + 15)
-            .text('K9');
-
-        var d9 = d3.line().curve(d3.curveCardinal)
-            .x(function(d) { return x(d.date); })
-            .y(function(d) { return yKD(d.d9); });
-        svg.append("g").attr("id", "d9").append("path").attr("class", "line");
-        svg.select("g#d9 path").datum(data).attr("d", d9);
-        svg.append('text')
-            .style("text-anchor", "begin")
-            .attr("class", "coords")
-            .style('fill', '#E69500')
-            .attr("x", 10)
-            .attr("y", height - volumeH - KDH + 35)
-            .text('D9');
-    
         // draw candlestick
         svg.append("g")
             .datum(data)
@@ -325,6 +278,9 @@ function initStockGraph(dataFile, options) {
             startMAPos = drawMAIndicator('60MA', startMAPos, '#FF30FF');
         }
 
+        svg.append("g").attr("class", "close");
+        svg.selectAll("g.close").datum(data).call(rsv);
+
         // draw x axis
         svg.append("g")
             .attr("class", "x axis")
@@ -339,14 +295,6 @@ function initStockGraph(dataFile, options) {
             .attr("class", "y axis")
             .call(yLeftAxis);
 
-        svg.append("g")
-            .attr("class", "volume axis");
-        svg.select("g.volume.axis").call(volumeAxis);
-
-        svg.append("g")
-            .attr("class", "kd axis");
-        svg.select("g.kd.axis").call(KDAxis);
-
         // draw crosshair
         svg.append('g')
             .attr("class", "crosshair")
@@ -354,34 +302,63 @@ function initStockGraph(dataFile, options) {
             .call(crosshair)
             .each(function(d) { move(d); });
 
-        var getXIndex = function(inDate) {
-            var inDateTime = new Date(inDate).getTime();
-            let xData = x.domain();
-            for (let i=0 ; i<xData.length ; i++) {
-                let item = xData[i];
-                let itemDateTime = new Date(item).getTime();
-                if (itemDateTime == inDateTime)
-                    return i;
-            }
-            return -1;
-        }
-
-        let trades = []
+        // buy point
         if (options.buy) {
-            options.buy.forEach(function(item){
-                var buyIdx = getXIndex(item.date);
-                trades.push({ date: data[buyIdx].date, type: "buy", price: item.price })
-            });
-        }
-        if (options.sell) {
-            options.sell.forEach(function(item){
-                var sellIdx = getXIndex(item.date);
-                trades.push({ date: data[sellIdx].date, type: "sell", price: item.price })
-            });
-        }
+            buyDate = parseDate(options.buy.date);
+            svg.append("g")
+                .attr("class", "x annotation bottom buy")
+                .datum([{value: new Date(options.buy.date)}])
+                .call(timeTopAnnotation);
 
-        svg.append("g").attr("class", "tradearrow");
-        svg.select("g.tradearrow").datum(trades).call(tradearrow);
+            var text = svg.append('text')
+                .style("text-anchor", "begin")
+                .attr("class", "buy")
+                .attr("x", 0)
+                .attr("y", Y(options.buy.price) - 5)
+                .text('買入:' + options.buy.price.toFixed(2));
+
+            // draw h line
+            var hline = d3.line();
+            var data = [
+                [0, Y(options.buy.price)], // (x1, y1)
+                [width, Y(options.buy.price)] // (x2, y2)
+            ];
+            svg.append("path")
+                .attr('class', 'buyline')
+                .attr("d", hline(data));
+        }
+        else
+            buyDate = undefined;
+
+        // sell point
+        if (options.sell) {
+            sellDate = parseDate(options.sell.date);
+            svg.append("g")
+                .attr("class", "x annotation bottom sell")
+                .datum([{value: new Date(options.sell.date)}])
+                .call(timeTopAnnotation);
+
+            var text = svg.append('text')
+                .style("text-anchor", "begin")
+                .attr("class", "sell")
+                .attr("x", 0)
+                .attr("y", Y(options.sell.price) - 5)
+                .text('賣出:' + options.sell.price.toFixed(2));
+
+            // draw h line
+            var hline = d3.line();
+            var data = [
+                [0, Y(options.sell.price)], // (x1, y1)
+                [width, Y(options.sell.price)] // (x2, y2)
+            ];
+            svg.append("path")
+                .attr('class', 'sellline')
+                .attr("d", hline(data));
+        }
+        else
+            sellDate = undefined;
+
+
         //console.log(data);
     });
 }
@@ -415,9 +392,9 @@ function move(coords) {
             dynamicText[8].svgText.text(dynamicText[8].label + ':' + allStockData[i].ma20);
             dynamicText[9].svgText.text(dynamicText[9].label + ':' + allStockData[i].ma40);
             dynamicText[10].svgText.text(dynamicText[10].label + ':' + allStockData[i].ma60);
-            dynamicText[11].svgText.text(dynamicText[11].label + ':' + allStockData[i].rsv);
-            dynamicText[12].svgText.text(dynamicText[12].label + ':' + allStockData[i].k9);
-            dynamicText[13].svgText.text(dynamicText[13].label + ':' + allStockData[i].d9);
+            dynamicText[11].svgText.text(dynamicText[11].label + ':' + allStockData[i].k9);
+            dynamicText[12].svgText.text(dynamicText[12].label + ':' + allStockData[i].d9);
+            dynamicText[13].svgText.text(dynamicText[13].label + ':' + allStockData[i].rsv);
             dynamicText[14].svgText.text(dynamicText[14].label + ':' + allStockData[i].volume);
         }
     }

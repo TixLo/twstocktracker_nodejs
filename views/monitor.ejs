@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker3.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.18/css/bootstrap-select.min.css">
+    <script data-ad-client="ca-pub-7783898344053757" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.0.4/popper.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
@@ -83,7 +84,7 @@ var hideApplyLoading = function() {
     $('#waitingForApply').modal('hide');
 }
 
-var initGraph = function() {
+var initGraph = function(buy = undefined, sell = undefined) {
     if (stockDataUrl == '')
         return;
 
@@ -94,6 +95,8 @@ var initGraph = function() {
         ma20: $('#ma20Checkbox').prop('checked'),
         ma40: $('#ma40Checkbox').prop('checked'),
         ma60: $('#ma60Checkbox').prop('checked'),
+        buy: buy,
+        sell: sell,
     }
 
     initStockGraph(stockDataUrl, opt);
@@ -184,8 +187,16 @@ var applySelectStock = function(focusStockId) {
             //console.log(res);
             if (res.dataUrl != undefined && res.dataUrl != '') {
                 stockDataUrl = res.dataUrl;
-                genTradeHistory(focusStockId);
-                initGraph();
+                let trades = genTradeHistory(focusStockId);
+                let buy = [];
+                let sell = [];
+                trades.forEach(function(item){
+                    buy.push({date: item.buy.date, price: item.buy.price});
+                    if (item.sell.date == 'RealTime')
+                        return;
+                    sell.push({date: item.sell.date, price: item.sell.price});
+                });
+                initGraph(buy, sell);
             }
         }
     }).always(function(){
@@ -194,7 +205,7 @@ var applySelectStock = function(focusStockId) {
 
 }
 
-var focusTradeStockPeriod = function(stockId, begin, end) {
+var focusTradeStockPeriod = function(stockId, begin, end, buyPrice, sellPrice, buyDate, sellDate) {
     let data = {
         stock: stockId,
         startTime: begin,
@@ -209,7 +220,15 @@ var focusTradeStockPeriod = function(stockId, begin, end) {
             //console.log(res);
             if (res.dataUrl != undefined && res.dataUrl != '') {
                 stockDataUrl = res.dataUrl;
-                initGraph();
+                let buy = [{
+                    price: buyPrice,
+                    date: buyDate,
+                }];
+                let sell = [{
+                    price: sellPrice,
+                    date: sellDate,
+                }];
+                initGraph(buy, sell);
             }
         }
     }).always(function(){
@@ -286,8 +305,8 @@ $('#saveConfig').on('click', function() {
         buy: buyAlgo,
         sell: sellAlgo
     };
-    console.log(data);
-    console.log(JSON.stringify(data));
+    //console.log(data);
+    //console.log(JSON.stringify(data));
     showApplyLoading();
     $.ajax({
         type: 'POST',
@@ -303,20 +322,19 @@ $('#saveConfig').on('click', function() {
 });
 
 var setupFunc = function(json) {
-    console.log(json);
+    //console.log(json);
     if (json.settings == undefined)
         return;
-    let algo = JSON.parse(json.settings);
-    console.log(algo);
+    let algo = json.settings;
+    //console.log(algo);
     buyAlgo = algo.buy;
     sellAlgo = algo.sell;
     updateBuyCond();
     updateSellCond();
+    loadMonitorStocks();
 }
 
 $(function() {
-    loadMonitorStocks();
-
     registryOnlineCB(updateOnline);
     registrySetupCB(setupFunc);
     socket = initSocketIO();
