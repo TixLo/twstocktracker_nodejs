@@ -1,6 +1,7 @@
 var TRADING_WAITING_BUY = 0;
 var TRADING_WAITING_SELL = 1;
 var semuStocks = {};
+let tradeCost = 0.585; //%
 
 function fetch(stockId, url) {
     //console.log(stockId + ',' + url);
@@ -54,6 +55,20 @@ function getAllStockData(data) {
 function getValue(stock, type, val) {
     if (type == 'PRICE')
         return stock.closePrice;
+    else if (type == '5MA')
+        return stock.ma5;
+    else if (type == '10MA')
+        return stock.ma10;
+    else if (type == '20MA')
+        return stock.ma20;
+    else if (type == '40MA')
+        return stock.ma40;
+    else if (type == '60MA')
+        return stock.ma60;
+    else if (type == 'K9')
+        return stock.K;
+    else if (type == 'D9')
+        return stock.D;
     else if (type == 'CONST')
         return val;
     else
@@ -318,22 +333,23 @@ function calc(stock) {
 function updateTable(stock) {
     let win = 0;
     let lose = 0;
-    let totalDelta = 0;
+    let totalProfit = 0;
     let winRate = 0;
     if (stock.trades.length > 0) {
         for (let i=0 ; i<stock.trades.length ; i++) {
-            if (stock.trades[i].delta > 0)
+            let profit = (stock.trades[i].delta) * 100.0 / stock.trades[i].buy.price - tradeCost;
+            if (profit > 0)
                 win++;
             else
                 lose++;
-            totalDelta += stock.trades[i].delta;
+            totalProfit += profit;
         }
-        winRate = (win + lose) * 100.0 / stock.trades.length;
+        winRate = win * 100.0 / stock.trades.length;
     }
 
     $('#dealCount_' + stock.StockId).text(stock.trades.length);
     $('#winRate_' + stock.StockId).text(winRate.toFixed(2) + '%');
-    $('#profit_' + stock.StockId).text(totalDelta.toFixed(2))
+    $('#profit_' + stock.StockId).text(totalProfit.toFixed(2) + '%')
 
     if (stock.buy == undefined && stock.sell == undefined) {
         $('#status_' + stock.StockId).text('');
@@ -395,7 +411,6 @@ function genTradeHistory(stockId) {
     }
 
     let html = '';
-    let tradeCost = 0.585; //%
     let totalProfit = 0;
     let totalDelta = 0;
     let totalCost = 0;

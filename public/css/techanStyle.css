@@ -41,32 +41,6 @@ path.volume.equal {
     fill: #B5B5B5;
 }
 
-.ma-5 path.line {
-    stroke: #1f77b4;
-    fill: none;
-    stroke-width: 1;
-}
-.ma-10 path.line {
-    stroke: #aec7e8;
-    fill: none;
-    stroke-width: 1;
-}
-.ma-20 path.line {
-    stroke: #9E9E00;
-    fill: none;
-    stroke-width: 1;
-}
-.ma-40 path.line {
-    stroke: #F0F000;
-    fill: none;
-    stroke-width: 1;
-}
-.ma-60 path.line {
-    stroke: #FF30FF;
-    fill: none;
-    stroke-width: 1;
-}
-
 .x.axis line {
     fill: none;
     stroke: rgba(0,0,0,0.1);
@@ -221,6 +195,32 @@ path.line {
     stroke-width: 1;
 }
 
+#ma-5 path.line {
+    stroke: #1f77b4;
+    fill: none;
+    stroke-width: 1;
+}
+#ma-10 path.line {
+    stroke: #aec7e8;
+    fill: none;
+    stroke-width: 1;
+}
+#ma-20 path.line {
+    stroke: #9E9E00;
+    fill: none;
+    stroke-width: 1;
+}
+#ma-40 path.line {
+    stroke: #F0F000;
+    fill: none;
+    stroke-width: 1;
+}
+#ma-60 path.line {
+    stroke: #FF30FF;
+    fill: none;
+    stroke-width: 1;
+}
+
 .tradearrow path.tradearrow {
     stroke: none;
 }
@@ -249,4 +249,15 @@ path.line {
 .modal-dialog.talk {
     width: 80%;
     max-width: none;
+}
+
+.footer {
+  font-size:15px;
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  background-color: black; 
+  color: white;
+  text-align: center;
 }

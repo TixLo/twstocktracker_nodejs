@@ -37,7 +37,7 @@ var sellCondAdd = function() {
     let sellC = $('#sellC').val();
     let sellBValue = $('#sellBValue').val();
     let errMsg = '';
-    console.log(sellA + ',' + sellEQ + ',' + sellB + ',' + sellBValue + ',' + sellC);
+    //console.log(sellA + ',' + sellEQ + ',' + sellB + ',' + sellBValue + ',' + sellC);
 
     let legal = true;
     if (sellA == '' || sellEQ == '' || sellB == '') {
@@ -69,7 +69,7 @@ var sellCondAdd = function() {
         B: {type: sellB, value: sellBValue},
         C: parseInt(sellC)
     });
-    console.log(sellAlgo);
+    //console.log(sellAlgo);
     updateSellCond();
 }
 
@@ -81,7 +81,7 @@ var updateSellCond = function() {
     let html = '';
     for (let i=0 ; i<sellAlgo.length ; i++) {
         item = sellAlgo[i];
-        console.log(item);
+        //console.log(item);
         html += '<tr><td>\n';
         html += (i + 1);
         html += '</td><td>\n';

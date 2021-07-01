@@ -46,7 +46,7 @@ var getType1History = async function(stockId) {
         // update to main thread
         parentPort.postMessage({
             finish: false,
-            curr: curr + 1,
+            curr: (allDates.length - curr),
             total: allDates.length,
             date: stock.date,
             stock: stock.stockId,

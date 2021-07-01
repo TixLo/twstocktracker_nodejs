@@ -23,7 +23,7 @@ let ma = function(array, val, len) {
     for (let i=0 ; i<len ; i++) {
         sum += array[i];
     }
-    return (sum / len).toFixed(2);
+    return (sum / len);
 }
 
 var exec = function(sql, values) {

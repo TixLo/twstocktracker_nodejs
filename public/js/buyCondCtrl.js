@@ -37,7 +37,7 @@ var buyCondAdd = function() {
     let buyC = $('#buyC').val();
     let buyBValue = $('#buyBValue').val();
     let errMsg = '';
-    console.log(buyA + ',' + buyEQ + ',' + buyB + ',' + buyBValue + ',' + buyC);
+    //console.log(buyA + ',' + buyEQ + ',' + buyB + ',' + buyBValue + ',' + buyC);
 
     let legal = true;
     if (buyA == '' || buyEQ == '' || buyB == '') {
@@ -69,7 +69,7 @@ var buyCondAdd = function() {
         B: {type: buyB, value: buyBValue},
         C: parseInt(buyC)
     });
-    console.log(buyAlgo);
+    //console.log(buyAlgo);
     updateBuyCond();
 }
 
@@ -81,7 +81,7 @@ var updateBuyCond = function() {
     let html = '';
     for (let i=0 ; i<buyAlgo.length ; i++) {
         item = buyAlgo[i];
-        console.log(item);
+        //console.log(item);
         html += '<tr><td>\n';
         html += (i + 1);
         html += '</td><td>\n';

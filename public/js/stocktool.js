@@ -165,13 +165,6 @@ function initStockGraph(dataFile, options) {
         .yAnnotation([ohlcAnnotation])
         .on("move", move);
 
-    // 均線
-    var sma5 = techan.plot.sma().xScale(x).yScale(y);
-    var sma10 = techan.plot.sma().xScale(x).yScale(y);
-    var sma20 = techan.plot.sma().xScale(x).yScale(y);
-    var sma40 = techan.plot.sma().xScale(x).yScale(y);
-    var sma60 = techan.plot.sma().xScale(x).yScale(y);
-
     // trade mark
     var tradearrow = techan.plot.tradearrow()
             .xScale(x)
@@ -204,7 +197,6 @@ function initStockGraph(dataFile, options) {
         var jsonData = data["Data"];
         stockName = data.Name;
         stockId = data.StockId;
-        console.log(data);
         var dataLength = data.Data.length;
         data = jsonData.map(function(d) {
             return {
@@ -294,29 +286,46 @@ function initStockGraph(dataFile, options) {
         // draw MA
         let startMAPos = 60;
         if (options.ma5) {
-            svg.append("g").attr("class", "sma ma-5");
-            svg.select("g.sma.ma-5").datum(techan.indicator.sma().period(5)(data)).call(sma5);
             startMAPos = drawMAIndicator('5MA', startMAPos, '#1f77b4');
+            var ma5 = d3.line().curve(d3.curveCardinal)
+                .x(function(d) { return x(d.date); })
+                .y(function(d) {return y(Math.min(Math.max(d.ma5, y.domain()[0]), y.domain()[1])); });
+            svg.append("g").attr("id", "ma-5").append("path").attr("class", "line");
+            svg.select("g#ma-5 path").datum(data).attr("d", ma5);
         }
         if (options.ma10) {
-            svg.append("g").attr("class", "sma ma-10");
-            svg.select("g.sma.ma-10").datum(techan.indicator.sma().period(10)(data)).call(sma10);
             startMAPos = drawMAIndicator('10MA', startMAPos, '#aec7e8');
+            var ma10 = d3.line().curve(d3.curveCardinal)
+                .x(function(d) { return x(d.date); })
+                .y(function(d) {return y(Math.min(Math.max(d.ma10, y.domain()[0]), y.domain()[1])); });
+            svg.append("g").attr("id", "ma-10").append("path").attr("class", "line");
+            svg.select("g#ma-10 path").datum(data).attr("d", ma10);
         }
         if (options.ma20) {
-            svg.append("g").attr("class", "sma ma-20");
-            svg.select("g.sma.ma-20").datum(techan.indicator.sma().period(20)(data)).call(sma20);
             startMAPos = drawMAIndicator('20MA', startMAPos, '#9E9E00');
+            var ma20 = d3.line().curve(d3.curveCardinal)
+                .x(function(d) { return x(d.date); })
+                .y(function(d) {return y(Math.min(Math.max(d.ma20, y.domain()[0]), y.domain()[1])); });
+            svg.append("g").attr("id", "ma-20").append("path").attr("class", "line");
+            svg.select("g#ma-20 path").datum(data).attr("d", ma20);
         }
         if (options.ma40) {
-            svg.append("g").attr("class", "sma ma-40");
-            svg.select("g.sma.ma-40").datum(techan.indicator.sma().period(40)(data)).call(sma40);
             startMAPos = drawMAIndicator('40MA', startMAPos, '#F0F000');
+
+            var ma40 = d3.line().curve(d3.curveCardinal)
+                .x(function(d) { return x(d.date); })
+                .y(function(d) {return y(Math.min(Math.max(d.ma40, y.domain()[0]), y.domain()[1])); });
+            svg.append("g").attr("id", "ma-40").append("path").attr("class", "line");
+            svg.select("g#ma-40 path").datum(data).attr("d", ma40);
         }
         if (options.ma60) {
-            svg.append("g").attr("class", "sma ma-60");
-            svg.select("g.sma.ma-60").datum(techan.indicator.sma().period(60)(data)).call(sma60);
             startMAPos = drawMAIndicator('60MA', startMAPos, '#FF30FF');
+
+            var ma60 = d3.line().curve(d3.curveCardinal)
+                .x(function(d) { return x(d.date); })
+                .y(function(d) {return y(Math.min(Math.max(d.ma60, y.domain()[0]), y.domain()[1])); });
+            svg.append("g").attr("id", "ma-60").append("path").attr("class", "line");
+            svg.select("g#ma-60 path").datum(data).attr("d", ma60);
         }
 
         // draw x axis
@@ -364,12 +373,16 @@ function initStockGraph(dataFile, options) {
         if (options.buy) {
             options.buy.forEach(function(item){
                 var buyIdx = getXIndex(item.date);
+                if (buyIdx < 0)
+                    return;
                 trades.push({ date: data[buyIdx].date, type: "buy", price: item.price })
             });
         }
         if (options.sell) {
             options.sell.forEach(function(item){
                 var sellIdx = getXIndex(item.date);
+                if (sellIdx < 0)
+                    return;
                 trades.push({ date: data[sellIdx].date, type: "sell", price: item.price })
             });
         }

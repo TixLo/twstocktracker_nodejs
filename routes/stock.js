@@ -116,11 +116,22 @@ router.get('/warehouse/stocks', async function(req, res, next) {
         userStocks = await stockdb.getUserStocks(user.data[0]);
     }
 
+    let fetchingStocks = TWSE.getHistoryDict();
     let stocks = [];
     let allStocks = await stockdb.getAllStock();
     if (allStocks.data != undefined) {
         for (let i=0 ; i<allStocks.data.length ; i++) {
             let item = allStocks.data[i];
+
+            let fetching = false;
+            for (let j=0 ; j<fetchingStocks.length ; j++) {
+                if (fetchingStocks[j].stock == item.stock_no) {
+                    fetching = true;
+                    break;
+                }
+            }
+            if (fetching)
+                continue;
 
             let saved = false;
             if (userStocks != undefined && userStocks.length != 0) {
@@ -155,23 +166,34 @@ router.get('/warehouse/stocks', async function(req, res, next) {
 });
 
 router.post('/monitorStocks', async function(req, res, next) {
-logger.info('111');
+logger.info('11');
     if (await cookies.check(req.cookies) == false) {
         res.end('');
         return;
     }
 
-logger.info('222');
+logger.info('22');
     let user = await stockdb.getUserByName(req.cookies.profile.username);
     if (user.data == undefined) {
         res.render('loginFailure', {msg: '資料出錯, 請重新燈入'});
         return;
     }
 
-logger.info('333');
+logger.info('33');
+    let fetchingStocks = TWSE.getHistoryDict();
     let allStocks = await stockdb.getUserStocks(user.data[0]);
     let stocks = [];
     for (let i=0 ; i<allStocks.length ; i++) {
+        let fetching = false;
+        for (let j=0 ; j<fetchingStocks.length ; j++) {
+            if (fetchingStocks[j].stock == allStocks[i].stock_no) {
+                fetching = true;
+                break;
+            }
+        }
+        if (fetching)
+            continue;
+
         stocks.push({
             id: i + 1,
             stock: allStocks[i].stock_no,
@@ -184,6 +206,7 @@ logger.info('333');
         });
     }
 
+logger.info('44');
     let data = {};
     data.rows = stocks;
     res.set({ 'content-type': 'application/json; charset=utf-8' });
