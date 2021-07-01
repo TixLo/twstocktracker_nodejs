@@ -24,8 +24,39 @@ var initSocketIO = function() {
     socket.on('delSavedStockConfirm', delSavedStockConfirmCB);
     socket.on('addMonitorStocksOK', addMonitorStocksOKCB);
     socket.on('delUsersOK', delUsersOKCB);
+    socket.on('messages', messagesCB);
 
     return socket;
+}
+
+var talk = function(data) {
+    if (socket == undefined)
+        return;
+
+    socket.emit('talk', data);
+}
+
+var updateTalk = function(data) {
+    if (socket == undefined)
+        return;
+
+    socket.emit('updateTalk', data);
+}
+
+var messagesCB = function(json) {
+    var area = $('#talkArea');
+    if (area == undefined || area.length == 0)
+        return;
+
+    var msg = '';
+    json.forEach(function(line){
+        msg += '\n' + line;
+    });
+    area.val(msg);
+
+    setTimeout(function(){
+        $('#talkArea').scrollTop($('#talkArea')[0].scrollHeight);
+    }, 500);
 }
 
 var registryOnlineCB = function(cb) {

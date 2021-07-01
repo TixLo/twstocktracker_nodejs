@@ -2,6 +2,10 @@
     <div class="pl-3 form-inline row">
         <span class='p-2'>固定區間</span>
         <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" id="allMonth" name="optradio" value="all">
+            <label class="form-check-label" for="allMonth">全部</label>
+        </div>
+        <div class="form-check form-check-inline">
             <input class="form-check-input" type="radio" id="oneMonth" name="optradio" value="mon1">
             <label class="form-check-label" for="oneMonth">一個月</label>
         </div>
@@ -45,6 +49,7 @@
         <% include sellCondition %>
     </fieldset>
     <input type="button" id="saveConfig" value="儲存設定" class="btn btn-info m-2" />
+    此設定會儲存於使用者[<%= username %>]
 </div>
 
 <script>

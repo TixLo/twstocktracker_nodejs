@@ -13,25 +13,55 @@ var redirect = function(res, url) {
 
 var homePage = '/stock/monitor';
 
+router.get('/clearcookie', async function(req, res, next) {
+    res.clearCookie('profile');
+    res.end('');
+});
+
 router.get('/', async function(req, res, next) {
     var ip = req.headers['x-forwarded-for'] ||
                 req.socket.remoteAddress ||
                 null;
     logger.info('login from ' + ip);
-    // temporarily for adsense
-    cookies.create(res, 'tt');
-    redirect(res, homePage);
-    return;
-
-    res.clearCookie('profile');
     if (await cookies.check(req.cookies) == true) {
-        redirect(res,homePage);
+        logger.info('get cookies');
+        res.render('monitor', {
+            username: req.cookies.profile.username
+        });
     }
     else {
-        redirect(res, '/login');
+        res.render('monitor', {
+            username: 'unknown'
+        });
     }
 });
 
+router.post('/login', async function(req, res, next) {
+    var ip = req.headers['x-forwarded-for'] ||
+                req.socket.remoteAddress ||
+                null;
+    logger.info('login from ' + ip);
+    logger.info(req.body);
+
+    var ret = await stockdb.getUserByName(req.body.name);
+    var username = req.body.name;
+    logger.info(ret);
+    if (ret.code == 'ERROR' || ret.data == undefined) {
+        ret = await stockdb.addUser(username, '', '');
+        if (ret.code == 'ERROR') {
+            res.set({ 'content-type': 'application/json; charset=utf-8' });
+            res.end(JSON.stringify({status: 'Failed to create user'}));
+            return;
+        }
+        logger.info('create a new user : ' + username);
+    }
+    logger.info('user[' + username + '] login');
+    cookies.create(res, username);
+
+    res.set({ 'content-type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify({status: 'OK'}));
+});
+/*
 router.get('/login', async function(req, res, next) {
     var ip = req.headers['x-forwarded-for'] ||
                 req.socket.remoteAddress ||
@@ -132,5 +162,6 @@ router.post('/doregistry', async function(req, res) {
         redirect(res, '/');
     }
 });
+*/
 
 module.exports = router;

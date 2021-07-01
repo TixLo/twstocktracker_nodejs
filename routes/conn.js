@@ -6,6 +6,9 @@ var io = undefined;
 
 var people = {};
 
+var allMessages = [];
+var newMessageCount = 0;
+
 var init = function(data) {
     io = data;
 }
@@ -183,6 +186,36 @@ var clearUsers = async function(socket, data){
     socket.emit('delUsersOK', {});
 }
 
+var talk = async function(socket, data){
+    if (data == undefined)
+        return;
+
+    if (data.username == undefined || data.message == undefined)
+        return;
+
+
+    allMessages.push('[' + data.username + ']: ' + data.message);
+    if (allMessages.length > 1000)
+        allMessages.splice(0, 1);
+
+    newMessageCount++;
+
+    //if (newMessageCount > 10) {
+        broadcast('messages', allMessages);
+        newMessageCount = 0;
+    //}
+}
+
+var updateTalk = async function(socket, data){
+    if (data == undefined)
+        return;
+
+    if (data.username == undefined)
+        return;
+
+    socket.emit('messages', allMessages);
+}
+
 module.exports.init = init;
 module.exports.broadcast = broadcast;
 module.exports.addStock = addStock;
@@ -195,3 +228,5 @@ module.exports.refreshAllStock = refreshAllStock;
 module.exports.addMonitorStocks = addMonitorStocks;
 module.exports.delUsers = delUsers;
 module.exports.clearUsers = clearUsers;
+module.exports.talk = talk;
+module.exports.updateTalk = updateTalk;

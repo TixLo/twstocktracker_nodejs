@@ -74,6 +74,9 @@ var sellCondAdd = function() {
 }
 
 var updateSellCond = function() {
+    if (sellAlgo == undefined)
+        return;
+
     let cond = '';
     let html = '';
     for (let i=0 ; i<sellAlgo.length ; i++) {

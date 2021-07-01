@@ -25,3 +25,39 @@
         </div>
     </div>
 </div>
+<div class="modal fade" id="inputNameModal" tabindex="-1" role="dialog" aria-labelledby="inputNameModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="inputNameModalLabel">請輸入您的名稱</h5>
+            </div>
+            <div class="modal-body">
+                <input type="text" class="form-control" id="inputName" placeholder="王小明">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-dark" id="inputNameBtn">確定</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="talkModal" tabindex="-1" role="dialog" aria-labelledby="talkModalLabel" aria-hidden="true">
+    <div class="modal-dialog talk" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="talkModalLabel">聊天室</h5>
+            </div>
+            <div class="modal-body">
+                <textarea class="form-control" id="talkArea" rows="16" readonly></textarea>
+                <div class="form-check form-check-inline p-2">
+                    <div class="">
+                        <input type="text" class="form-control" id="talkInput" placeholder="輸入您要傳送的訊息" style="width: 400px">
+                    </div>
+                    <button type="button" id="sendMsg" class="btn btn-info pl-3">送出</button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-dark" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -48,8 +48,6 @@ var KDAxis = d3.axisLeft(yKD)
 
 // 紀錄滑鼠移到的資料
 var allStockData = undefined;
-var buyDate = undefined;
-var sellDate = undefined;
 
 // 設定即時顯示文字區塊
 var dynamicText = [];
@@ -179,9 +177,6 @@ function initStockGraph(dataFile, options) {
             .xScale(x)
             .yScale(y)
             .y(function(d) {
-                //if(d.type === 'buy') return y(d.low)+5;
-                //if(d.type === 'sell') return y(d.high)-5;
-                //else return y(d.price);
                 return y(d.price);
             });
 
@@ -209,7 +204,6 @@ function initStockGraph(dataFile, options) {
         var jsonData = data["Data"];
         stockName = data.Name;
         stockId = data.StockId;
-        //data = calcMA(data);
         console.log(data);
         var dataLength = data.Data.length;
         data = jsonData.map(function(d) {
@@ -390,21 +384,8 @@ function move(coords) {
     if (allStockData == undefined)
         return;
 
-    var buyTime = 0;
-    var sellTime = 0;
-    if (buyDate != undefined) {
-        buyTime = new Date(buyDate).getTime();
-        sellTime = new Date(sellDate).getTime();
-    }
     for (let i = 0; i < allStockData.length; i++) {
         if (coords.x == allStockData[i].date) {
-            if (allStockData[i].dateTime == buyTime) {
-                dynamicText[0].svgText.text('[[!!買入!!]]');
-            }
-            else if (allStockData[i].dateTime == sellTime)
-                dynamicText[0].svgText.text('[[!!賣出!!]]');
-            else
-                dynamicText[0].svgText.text('');
             dynamicText[1].svgText.text(timeAnnotation.format()(coords.x));
             dynamicText[2].svgText.text(dynamicText[2].label + ':' + allStockData[i].open);
             dynamicText[3].svgText.text(dynamicText[3].label + ':' + allStockData[i].high);
@@ -421,42 +402,5 @@ function move(coords) {
             dynamicText[14].svgText.text(dynamicText[14].label + ':' + allStockData[i].volume);
         }
     }
-}
-
-function calcMA(data) {
-    let ma = function(array, val, len) {
-        if (array.length >= len)
-            array.splice(0,1);
-        array.push(val);
-        if (array.length < len)
-            return 0;
-        let sum = 0;
-        for (let i=0 ; i<len ; i++) {
-            sum += array[i];
-        }
-        return (sum / len).toFixed(2);
-    }
-
-    let ma5Data = [];
-    let ma10Data = [];
-    let ma20Data = [];
-    let ma40Data = [];
-    let ma60Data = [];
-    for (let i=0 ; i<data.Data.length ; i++) {
-        let ma5 = ma(ma5Data, data.Data[i][STOCK_CLOSE_PRICE], 5);
-        let ma10 = ma(ma10Data, data.Data[i][STOCK_CLOSE_PRICE], 10);
-        let ma20 = ma(ma20Data, data.Data[i][STOCK_CLOSE_PRICE], 20);
-        let ma40 = ma(ma40Data, data.Data[i][STOCK_CLOSE_PRICE], 40);
-        let ma60 = ma(ma60Data, data.Data[i][STOCK_CLOSE_PRICE], 60);
-
-        data.Data[i].push(ma5);
-        data.Data[i].push(ma10);
-        data.Data[i].push(ma20);
-        data.Data[i].push(ma40);
-        data.Data[i].push(ma60);
-        data.Data[i].push(50); //K9
-        data.Data[i].push(60); //K9
-    }
-    return data;
 }
 

@@ -194,8 +194,11 @@ function calc(stock) {
         //   }
         //]
     };
-    stock.algo.buy = buyAlgo;
-    stock.algo.sell = sellAlgo;
+
+    if (buyAlgo != undefined)
+        stock.algo.buy = buyAlgo;
+    if (sellAlgo != undefined)
+        stock.algo.sell = sellAlgo;
     //console.log(stock.algo);
     if (stock.algo.buy.length > 0) {
         stock.algo.buy.forEach(function(item){

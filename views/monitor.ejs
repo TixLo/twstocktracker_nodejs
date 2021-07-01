@@ -1,7 +1,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>監控中心</title>
+    <title>股票回測分析</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link href="https://unpkg.com/bootstrap-table@1.18.3/dist/bootstrap-table.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
@@ -118,19 +118,19 @@ var applySelectStock = function(focusStockId) {
     if ($("#oneMonth").is(":checked")) {
         fixedDeltaMS = 30 * 24 * 60 * 60 * 1000;
     }
-    if ($("#threeMonth").is(":checked")) {
+    else if ($("#threeMonth").is(":checked")) {
         fixedDeltaMS = 3 * 30 * 24 * 60 * 60 * 1000;
     }
-    if ($("#sixMonth").is(":checked")) {
+    else if ($("#sixMonth").is(":checked")) {
         fixedDeltaMS = 6 * 30 * 24 * 60 * 60 * 1000;
     }
-    if ($("#oneYear").is(":checked")) {
+    else if ($("#oneYear").is(":checked")) {
         fixedDeltaMS = 12 * 30 * 24 * 60 * 60 * 1000;
     }
-    if ($("#twoYear").is(":checked")) {
+    else if ($("#twoYear").is(":checked")) {
         fixedDeltaMS = 2 * 12 * 30 * 24 * 60 * 60 * 1000;
     }
-    if ($("#threeYear").is(":checked")) {
+    else if ($("#threeYear").is(":checked")) {
         fixedDeltaMS = 3 * 12 * 30 * 24 * 60 * 60 * 1000;
     }
 
@@ -286,6 +286,8 @@ var loadMonitorStocks = function() {
         type: 'POST',
         url: '/stock/monitorStocks',
         success: function(data){
+            if (data.rows == undefined)
+                return;
             genMonitorStocksTable(data.rows);
             semu(data.rows);
         }
@@ -329,12 +331,56 @@ var setupFunc = function(json) {
     //console.log(algo);
     buyAlgo = algo.buy;
     sellAlgo = algo.sell;
+    if (buyAlgo == undefined)
+        buyAlgo = [];
+    if (sellAlgo == undefined)
+        sellAlgo = [];
     updateBuyCond();
     updateSellCond();
     loadMonitorStocks();
 }
 
+$('#talk').on('click', function(){
+    $('#talkModal').modal('show');
+    updateTalk({username: '<%= username %>'});
+});
+
+$('#sendMsg').on('click', function(){
+    let message = $('#talkInput').val();
+    let data = {
+        username: '<%= username %>',
+        message: message
+    }
+
+    talk(data);
+});
+
+<% if (username == 'unknown') { %>
+$('#inputNameBtn').on('click', function(){
+    let name = $('#inputName').val();
+    if (name.length == 0)
+        return;
+    showApplyLoading();
+    $.ajax({
+        type: 'POST',
+        url: '/login',
+        data: {name: name},
+        success: function(res){
+            console.log(res);
+            if (res.status == 'OK')
+                location.reload();
+        }
+    }).always(function(){
+        hideApplyLoading();
+    });
+});
+<% } %>
+
 $(function() {
+<% if (username == 'unknown') { %>
+    $('#inputNameModal').modal('show');
+    return;
+<% } %>
     registryOnlineCB(updateOnline);
     registrySetupCB(setupFunc);
     socket = initSocketIO();

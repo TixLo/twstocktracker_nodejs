@@ -1,20 +1,16 @@
-<div class="navbar bg-dark d-flex justify-content-between">
+<div class="navbar fixed-top bg-dark d-flex justify-content-between">
     <div class="">
         <span class="p-0 text-light" style="font-size: 18px;">同時在線人數:</span>
         <span id="totalOnline" class="p-0 text-light" style="font-size: 20px;"></span>
+        <input type="button" id="talk" value="閒聊" class="btn btn-info ml-3" />
     </div>
     <div class="">
-        <span class="p-0 text-light" style="font-size: 18px;">帳號:</span>
+        <span class="p-0 text-light" style="font-size: 18px;">使用者名稱:</span>
         <span id="username" class="p-0 text-light" style="font-size: 20px;"><%= username %></span>
-        <input type="button" id="logoutAction" value="登出" class="btn btn-info" />
     </div>
 </div>
 
 <script>
-$('#logoutAction').click(function(){
-    window.location.href = "/logout"
-});
-
 var updateOnline = function(json) {
     $('#totalOnline').text(json.count);
 }

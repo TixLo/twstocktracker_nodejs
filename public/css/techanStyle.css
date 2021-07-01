@@ -245,3 +245,8 @@ path.line {
 .tradearrow path.highlight.sell {
     stroke: #9900FF;
 }
+
+.modal-dialog.talk {
+    width: 80%;
+    max-width: none;
+}
