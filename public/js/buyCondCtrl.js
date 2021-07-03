@@ -18,6 +18,12 @@ var buyAEvt = function(val) {
         if ($('#buyB').val() == val)
             $('#buyB').val('').change();
     }
+
+    // reset others
+    $('#buyEQ').val('').change();
+    $('#buyB').val('').change();
+    $('#buyC').val('').change();
+    $('#buyBValue').val('');
 }
 
 var buyBEvt = function(val) {

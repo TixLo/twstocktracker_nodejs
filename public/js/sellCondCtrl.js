@@ -40,6 +40,12 @@ var sellAEvt = function(val) {
         if ($('#sellB').val() == val)
             $('#sellB').val('').change();
     }
+
+    // reset others
+    $('#sellEQ').val('').change();
+    $('#sellB').val('').change();
+    $('#sellC').val('').change();
+    $('#sellBValue').val('');
 }
 
 var sellBEvt = function(val) {

@@ -30,8 +30,8 @@ var getType1History = async function(stockId) {
             logger.info('Failed!!!');
             continue;
         }
+        logger.info('waiting addStock...');
         await stockdb.addStock(stock, 'TYPE1');
-        await stockdb.calcStock(stockId);
         firstFetch = false;
 
         // update to main thread
@@ -47,6 +47,10 @@ var getType1History = async function(stockId) {
         stockArray.push(stock);
     }
 
+    logger.info('waitting calcStock...');
+    await stockdb.calcStock(stockId);
+
+    logger.info('post message..');
     parentPort.postMessage({
         finish: true,
         stock: stockId,

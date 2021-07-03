@@ -38,20 +38,20 @@ router.get('/admin/tix/warehouse', async function(req, res, next) {
 //    });
 //});
 
-router.get('/warehouse', async function(req, res, next) {
-    var ip = req.headers['x-forwarded-for'] ||
-                req.socket.remoteAddress ||
-                null;
-    logger.info('warehouse from ' + ip);
-    if (await cookies.check(req.cookies) == false) {
-        redirect(res, '/login');
-        return;
-    }
-    res.render('warehouse', {
-        maxMonitoredStocks: 20,
-        username: req.cookies.profile.username
-    });
-});
+//router.get('/warehouse', async function(req, res, next) {
+//    var ip = req.headers['x-forwarded-for'] ||
+//                req.socket.remoteAddress ||
+//                null;
+//    logger.info('warehouse from ' + ip);
+//    if (await cookies.check(req.cookies) == false) {
+//        redirect(res, '/login');
+//        return;
+//    }
+//    res.render('warehouse', {
+//        maxMonitoredStocks: 20,
+//        username: req.cookies.profile.username
+//    });
+//});
 
 router.get('/warehouse/queuedStockData', async function(req, res, next) {
     if (await cookies.check(req.cookies) == false) {

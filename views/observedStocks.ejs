@@ -1,4 +1,45 @@
 <div>
+    <div class="pl-3 form-inline row">
+        <span class='p-2'>固定區間</span>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" id="allMonth" name="optradio" value="all">
+            <label class="form-check-label" for="allMonth">全部</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" id="oneMonth" name="optradio" value="mon1">
+            <label class="form-check-label" for="oneMonth">一個月</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" id="threeMonth" name="optradio" value="mon3">
+            <label class="form-check-label" for="threeMonth">三個月</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" id="sixMonth" name="optradio" value="mon6">
+            <label class="form-check-label" for="sixMonth">六個月</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" id="oneYear" name="optradio" value="mon12">
+            <label class="form-check-label" for="oneYear">一年</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" id="twoYear" name="optradio" value="mon24">
+            <label class="form-check-label" for="twoYear">兩年</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" id="threeYear" name="optradio" value="mon36">
+            <label class="form-check-label" for="threeYear">三年</label>
+        </div>
+    </div>
+    <div class="p-3 form-inline row">
+        <span class='p-2'>自選區間</span>
+        <div class="rounded border border-dark bg-light p-1">
+            <span class='p-2'>開始日期:</span>
+            <input type="text" name="date" class="form-control datepicker" id="startDate" value="" style="width: 110px">
+            <span class='p-2'>結束日期:</span>
+            <input type="text" name="date" class="form-control datepicker" id="endDate" value="" style="width: 110px">
+        </div>
+        <span class='p-2'>(預設:全部)</span>
+    </div>
     <div class="rounded border border-dark bg-light table-responsive text-nowrap" style="height: 400px">
     <table
         id="monitorStocks" 
@@ -28,7 +69,7 @@
             <input type="button" id="resemu" value="重新計算" class="btn btn-info m-2" />
         </div>
         <div>
-            <span class=''>變更觀察中的股票</span>
+            <h3>變更股票名單</span>
             <input type="button" id="editStock" value="編輯" class="btn btn-info m-2" />
         </div>
     </div>

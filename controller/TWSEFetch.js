@@ -18,7 +18,9 @@ var get = function(date, stockId) {
     sysTool.sleep(6);
 
     try {
-        var res = request('GET', url);
+        var res = request('GET', url ,{
+            timeout: 20000
+        });
         var json = JSON.parse(res.getBody('utf8'));
         logger.info('fetch Done');
         if (json != undefined && json.stat != 'OK') {
@@ -26,8 +28,11 @@ var get = function(date, stockId) {
             return undefined;
         }
 
-        if (json.title == undefined)
+        if (json.title == undefined) {
+            logger.info('json.title == undefined');
+            logger.info(json);
             return undefined;
+        }
 
         json.name = json.title.split(' ')[2];
         json.stockId = stockId;

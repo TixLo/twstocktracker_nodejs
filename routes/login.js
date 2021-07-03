@@ -82,4 +82,19 @@ router.get('/logout', async function(req, res, next) {
     redirect(res, "/");
 });
 
+router.get('/warehouse', async function(req, res, next) {
+    var ip = req.headers['x-forwarded-for'] ||
+                req.socket.remoteAddress ||
+                null;
+    logger.info('warehouse from ' + ip);
+    if (await cookies.check(req.cookies) == false) {
+        redirect(res, '/login');
+        return;
+    }
+    res.render('warehouse', {
+        maxMonitoredStocks: 20,
+        username: req.cookies.profile.username
+    });
+});
+
 module.exports = router;

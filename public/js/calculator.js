@@ -224,10 +224,10 @@ function calc(stock) {
             sell: stock.sell,
             delta: stock.sell.price - stock.buy.price
         });
-        if (stock.sell.realtime == true) {
-            stock.buy = undefined;
-            stock.sell = undefined;
-        }
+        //if (stock.sell.realtime == true) {
+        //    stock.buy = undefined;
+        //    stock.sell = undefined;
+        //}
     }
     stock.trades = [];
 
@@ -406,10 +406,10 @@ function updateTable(stock) {
     else if (stock.buy != undefined && stock.sell != undefined) {
         let status = '';
         if (stock.sell.realtime == true) {
-            status = stock.status;
-        }
-        else {
-            status = '[下車!!] 買入(' + stock.buy.date + ', ' + stock.buy.price
+        //    status = stock.status;
+        //}
+        //else {
+            status = '[持有中] 買入(' + stock.buy.date + ', ' + stock.buy.price
                     + ') -> 目前價格: ' + stock.sell.price
                     + ', 價差: ' + (stock.sell.price - stock.buy.price).toFixed(2); 
         }
