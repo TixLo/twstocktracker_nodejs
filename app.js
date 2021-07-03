@@ -9,6 +9,7 @@ var loginRouter = require('./routes/login');
 var stockRouter = require('./routes/stock');
 var usersRouter = require('./routes/users');
 var controllerRouter = require('./routes/controller');
+var TWSE = require('./controller/TWSE.js');
 
 var app = express();
 
@@ -53,6 +54,11 @@ cron.schedule('59 23 * * *', function() {
     else {
         shell.echo('Database backup complete');
     }
+});
+
+cron.schedule('0 15 * * *', function() {
+    logger.info('call TWSE.updateCurrMonth()');
+    TWSE.updateCurrMonth();
 });
 
 // catch 404 and forward to error handler

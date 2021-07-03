@@ -7,6 +7,7 @@ log4js.configure(logConfig);
 var logger = log4js.getLogger('TWSEHistoyWorker');
 
 var queueStock = [];
+var waitingUpdate = false;
 var fetching = false;
 
 // TYPE1: 上市
@@ -21,17 +22,6 @@ var getType1History = async function(stockId) {
     logger.info('getType1History: ' + stockId);
     let stockArray = [];
     let allDates = TWSEFetch.getHistoryDate();
-    let tmp = {
-        ma5: [],
-        ma10: [],
-        ma20: [],
-        ma40: [],
-        ma60: [],
-        pool: [],
-        prevK9: 0,
-        prevD9: 0,
-    };
-
     for (let curr=allDates.length - 1 ; curr>=0 ; curr--) {
         let date = allDates[curr];
         logger.info('[' + curr + ']: ' + date);
@@ -40,7 +30,8 @@ var getType1History = async function(stockId) {
             logger.info('Failed!!!');
             continue;
         }
-        await stockdb.addStock(stock, 'TYPE1', tmp);
+        await stockdb.addStock(stock, 'TYPE1');
+        await stockdb.calcStock(stockId);
         firstFetch = false;
 
         // update to main thread
@@ -75,6 +66,40 @@ var getType1History = async function(stockId) {
     //
     // check queue
     //
+    logger.info('queueStock.length: ' + queueStock.length + ',waitingUpdate: ' + waitingUpdate);
+    if (waitingUpdate) {
+        logger.info('call updateCurrMonth()');
+        updateCurrMonth();
+    }
+    else if (queueStock.length > 0) {
+        logger.info('call getType1History()');
+        getType1History(queueStock[0].stock);
+    }
+    else {
+        logger.info('done!!!');
+        fetching = false;
+    }
+}
+
+var updateCurrMonth = async function() {
+    let data = await stockdb.getAllStock();
+    if (data.code == 'OK') {
+        for (let i=0 ; i<data.data.length ; i++) {
+            let item = data.data[i];
+            logger.info('update this month for ' + item.stock_no);
+            let stock = TWSEFetch.getCurrMonth(item.stock_no);
+            if (stock == undefined) {
+                logger.info('Failed!!!');
+                continue;
+            }
+            //logger.info(stock);
+            await stockdb.addStock(stock, 'TYPE1');
+            await stockdb.calcStock(item.stock_no);
+        }
+    }
+
+    logger.info('queueStock.length: ' + queueStock.length);
+    waitingUpdate = false;
     if (queueStock.length > 0) {
          getType1History(queueStock[0].stock);
     }
@@ -92,14 +117,24 @@ parentPort.on('message', (message) => {
         return;
     }
 
-    queueStock.push({stock: message.stock, type: message.type});
-    logger.info(queueStock);
+    if (message.type != 'update') {
+        queueStock.push({stock: message.stock, type: message.type});
+        logger.info(queueStock);
+    }
 
     if (fetching == false) {
-         if (message.type == 'TYPE1') {
-             getType1History(message.stock);
-         }
+        if (message.type == 'TYPE1') {
+            getType1History(message.stock);
+        }
+        else {
+            updateCurrMonth();
+        }
         fetching = true;
+    }
+    else {
+        if (message.type == 'update') {
+            waitingUpdate = true;
+        }
     }
 });
 

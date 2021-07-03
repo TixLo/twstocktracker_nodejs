@@ -19,24 +19,24 @@ var redirect = function(res, url) {
 router.get('/admin/tix/warehouse', async function(req, res, next) {
     cookies.create(res, 'ADMIN');
     res.render('warehouse', {
-        maxMonitoredStocks: 10,
+        maxMonitoredStocks: 20,
         username: 'ADMIN'
     });
 });
 
-router.get('/monitor', async function(req, res, next) {
-    var ip = req.headers['x-forwarded-for'] ||
-                req.socket.remoteAddress ||
-                null;
-    logger.info('monitor from ' + ip);
-    if (await cookies.check(req.cookies) == false) {
-        redirect(res, '/');
-        return;
-    }
-    res.render('monitor', {
-        username: req.cookies.profile.username
-    });
-});
+//router.get('/monitor', async function(req, res, next) {
+//    var ip = req.headers['x-forwarded-for'] ||
+//                req.socket.remoteAddress ||
+//                null;
+//    logger.info('monitor from ' + ip);
+//    if (await cookies.check(req.cookies) == false) {
+//        redirect(res, '/');
+//        return;
+//    }
+//    res.render('monitor', {
+//        username: req.cookies.profile.username
+//    });
+//});
 
 router.get('/warehouse', async function(req, res, next) {
     var ip = req.headers['x-forwarded-for'] ||
@@ -48,7 +48,7 @@ router.get('/warehouse', async function(req, res, next) {
         return;
     }
     res.render('warehouse', {
-        maxMonitoredStocks: 10,
+        maxMonitoredStocks: 20,
         username: req.cookies.profile.username
     });
 });
@@ -166,20 +166,17 @@ router.get('/warehouse/stocks', async function(req, res, next) {
 });
 
 router.post('/monitorStocks', async function(req, res, next) {
-logger.info('11');
     if (await cookies.check(req.cookies) == false) {
         res.end('');
         return;
     }
 
-logger.info('22');
     let user = await stockdb.getUserByName(req.cookies.profile.username);
     if (user.data == undefined) {
         res.render('loginFailure', {msg: '資料出錯, 請重新燈入'});
         return;
     }
 
-logger.info('33');
     let fetchingStocks = TWSE.getHistoryDict();
     let allStocks = await stockdb.getUserStocks(user.data[0]);
     let stocks = [];
@@ -206,7 +203,6 @@ logger.info('33');
         });
     }
 
-logger.info('44');
     let data = {};
     data.rows = stocks;
     res.set({ 'content-type': 'application/json; charset=utf-8' });
@@ -215,7 +211,7 @@ logger.info('44');
 });
 
 router.post('/warehouse/add', async function(req, res, next) {
-    logger.info(req.body);
+    //logger.info(req.body);
     if (await cookies.check(req.cookies) == false) {
         res.end('');
         return;
@@ -362,7 +358,7 @@ router.post('/genstock', async function(req, res, next) {
         // format date
         let time = new Date(stock[i].date_stock);
         let yyyy = time.getFullYear();
-        let mm = time.getMonth();
+        let mm = time.getMonth() + 1;
         let dd = time.getDate();
 
         // fill in data
@@ -388,7 +384,7 @@ router.post('/genstock', async function(req, res, next) {
     }
 
     //FIXED ME!
-    await TWSEFetch.fetchRealTimeStockPrice(); 
+    //await TWSEFetch.fetchRealTimeStockPrice(); 
     //---
 
     //
@@ -451,7 +447,7 @@ router.post('/saveConfig', async function(req, res, next) {
 
     //let settings = JSON.stringify(req.body);
     let settings = req.body;
-    logger.info(req.body.settings);
+    //logger.info(req.body.settings);
     let user = await stockdb.getUserByName(req.cookies.profile.username);
     if (user.data == undefined) {
         res.render('loginFailure', {msg: '資料出錯, 請重新燈入'});

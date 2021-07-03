@@ -10,8 +10,7 @@
         "type": "file",
         "level": "all",
         "filename": "../logBackup/app.log",
-        "maxLogSize": 10485760,
-        "numBackups": 3
+        "pattern": "-yyyy-MM-dd"
       },
       "std": {
           "type": "stdout",

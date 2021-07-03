@@ -85,6 +85,38 @@ var equation = {
 };
 
 function comp(stock, cond) {
+    if (cond.E == 'trendUp' || cond.E == 'trendDown') {
+        if (cond.valArray == undefined)
+            cond.valArray = [];
+        
+        let AVal = getValue(stock, cond.A.type, cond.A.value);
+        cond.valArray.push(AVal);
+        if (cond.valArray.length > cond.C)
+            cond.valArray.splice(0,1);
+        if (cond.valArray.length < cond.C)
+            return false;
+
+        for (let i=1 ; i<cond.valArray.length ; i++) {
+            if (cond.E == 'trendUp') {
+                if (cond.valArray[i] - cond.valArray[i-1] <= 0)
+                    return false;
+            }
+            else if (cond.E == 'trendDown') {
+                if (cond.valArray[i] - cond.valArray[i-1] >= 0)
+                    return false;
+            }
+            else
+                return false;
+        }
+        cond.valArray = undefined;
+        return true;
+    }
+    else if (cond.A.type == 'StopLoss') {
+        let BVal = getValue(stock, cond.B.type, cond.B.value);
+        let targetPrice = (1.0 + (parseFloat(BVal) / 100.0)) * stock.buy.price;
+        return (stock.closePrice <= targetPrice)
+    }
+    
     if (equation[cond.E] == undefined)
         return false;
 
@@ -95,8 +127,11 @@ function comp(stock, cond) {
 
     //console.log('AVal: ' + AVal + ',' + cond.E + ', BVal: ' + BVal + ', C: ' + cond.C + ', V: ' + cond.val);
     if (equation[cond.E](AVal, BVal)) {
+        if (cond.val == undefined)
+            cond.val = 0;
         cond.val++;
         if (cond.val >= cond.C) {
+            cond.val = 0;
             return true;
         }
         return false;
@@ -129,12 +164,19 @@ function tradingSell(stock) {
         return false;
 
     let count = 0;
+    let stopLossCriteria = false;
     stock.algo.sell.forEach(function(cond){
         if (comp(stock, cond)) {
+            if (cond.A.type == 'StopLoss') {
+                stopLossCriteria = true;
+            }
+            
             count++;
         }
+        else if (cond.A.type == 'StopLoss')
+            count++;
     });
-    return (count == stock.algo.sell.length);
+    return ((count == stock.algo.sell.length) || stopLossCriteria);
 }
 
 function calc(stock) {
@@ -169,7 +211,8 @@ function calc(stock) {
             ma10: stock.ma10,
             ma20: stock.ma20,
             ma40: stock.ma40,
-            ma60: stock.ma60
+            ma60: stock.ma60,
+            realtime: false
         };
     }
     stock.buy = undefined;
@@ -181,7 +224,7 @@ function calc(stock) {
             sell: stock.sell,
             delta: stock.sell.price - stock.buy.price
         });
-        if (stock.sell.date != 'RealTime') {
+        if (stock.sell.realtime == true) {
             stock.buy = undefined;
             stock.sell = undefined;
         }
@@ -314,7 +357,7 @@ function calc(stock) {
                              + ', 買入價格:' + stock.buy.price
                              + ', 目前價格:' + stock.closePrice;
                 stock.sell = snapshot();
-                stock.sell.date = 'RealTime';
+                stock.sell.realtime = true;;
                 incTrade();
             }
         }
@@ -356,13 +399,13 @@ function updateTable(stock) {
     }
     else if (stock.buy != undefined && stock.sell == undefined) {
         $('#status_' + stock.StockId).text(stock.status);
-        if (stock.buy.date == 'RealTime') {
+        if (stock.buy.realtime == true) {
             $('#status_' + stock.StockId).attr('class', 'text-primary');
         }
     }
     else if (stock.buy != undefined && stock.sell != undefined) {
         let status = '';
-        if (stock.sell.date == 'RealTime') {
+        if (stock.sell.realtime == true) {
             status = stock.status;
         }
         else {
@@ -415,7 +458,8 @@ function genTradeHistory(stockId) {
     let totalDelta = 0;
     let totalCost = 0;
     let dayOneCost = 0;
-    for (let i=0 ; i<semuStocks[stockId].trades.length ; i++) {
+    //for (let i=0 ; i<semuStocks[stockId].trades.length ; i++) {
+    for (let i=semuStocks[stockId].trades.length - 1 ; i>=0 ; i--) {
         trade = semuStocks[stockId].trades[i];
         
         let deltaPrice = trade.sell.price - trade.buy.price;
@@ -423,9 +467,9 @@ function genTradeHistory(stockId) {
         //begin
         html += '<tr>\n';
 
-        html += '<td>'+ (i + 1) + '</td>\n';
+        html += '<td>'+ (semuStocks[stockId].trades.length - i) + '</td>\n';
 
-        if (trade.sell.date == 'RealTime')
+        if (trade.sell.realtime == true)
             html += '<td>'+ trade.buy.date + ' -> 持有中！</td>\n';
         else
             html += '<td>'+ trade.buy.date + ' -> ' + trade.sell.date + '</td>\n';

@@ -7,10 +7,15 @@
     <div class="">
         <span class="p-0 text-light" style="font-size: 18px;">使用者名稱:</span>
         <span id="username" class="p-0 text-light" style="font-size: 20px;"><%= username %></span>
+        <input type="button" id="logoutAction" value="登出" class="btn btn-info" />
     </div>
 </div>
 
 <script>
+$('#logoutAction').click(function(){
+    window.location.href = "/logout"
+});
+
 var updateOnline = function(json) {
     $('#totalOnline').text(json.count);
 }

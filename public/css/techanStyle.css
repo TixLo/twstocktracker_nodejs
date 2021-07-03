@@ -251,13 +251,36 @@ path.line {
     max-width: none;
 }
 
+.modal-dialog.tutorial {
+    width: 50%;
+    max-width: none;
+}
+
 .footer {
   font-size:15px;
-  position: fixed;
   left: 0;
   bottom: 0;
   width: 100%;
   background-color: black; 
   color: white;
   text-align: center;
+}
+
+.carousel-control-next,
+.carousel-control-prev,
+.carousel-indicators {
+    filter: invert(100%);
+}
+
+[aria-expanded="false"] .menu__icon--open {
+  display: inline;
+}
+[aria-expanded="false"] .menu__icon--close {
+  display: none;
+}
+[aria-expanded="true"] .menu__icon--open {
+  display: none;
+}
+[aria-expanded="true"] .menu__icon--close {
+  display: inline;
 }

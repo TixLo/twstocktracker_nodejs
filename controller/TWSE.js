@@ -155,3 +155,9 @@ module.exports.pushFetchStockWithoutChecking = async function(socket, stock, typ
 module.exports.getHistoryDict = function() {
     return historyDict;
 }
+
+module.exports.updateCurrMonth = function() {
+    fetchHistoryWorker.postMessage({
+        stock: '', type: 'update'
+    });
+}

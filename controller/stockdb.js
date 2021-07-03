@@ -68,7 +68,7 @@ var dateToLong = function(dateString) {
         if (token.length != 3)
             return 0;
         let yyyy = parseInt(token[0]) + 1911;
-        let mm = parseInt(token[1]);
+        let mm = parseInt(token[1]) - 1;
         let dd = parseInt(token[2]);
         let d = new Date(yyyy, mm, dd);
         return d.getTime();
@@ -253,7 +253,7 @@ var querySavedStock = async function(stockId) {
     return await exec(sql);
 }
 
-var addStock = async function(stockJson, type, tmp) {
+var addStock = async function(stockJson, type) {
     //logger.info(stockJson);
     let stockId = stockJson.stockId;
     let stockName = stockJson.name;
@@ -325,42 +325,6 @@ var addStock = async function(stockJson, type, tmp) {
         let sql = '';
 
         //
-        // calculate MA
-        //
-        data.ma5 = ma(tmp.ma5, data.stockClosePrice, 5);
-        data.ma10 = ma(tmp.ma10, data.stockClosePrice, 10);
-        data.ma20 = ma(tmp.ma20, data.stockClosePrice, 20);
-        data.ma40 = ma(tmp.ma40, data.stockClosePrice, 40);
-        data.ma60 = ma(tmp.ma60, data.stockClosePrice, 60);
-
-        //
-        // calculate RSI/K9/D9
-        //
-        tmp.pool.push(data.stockClosePrice);
-        if (tmp.pool.length > 9)
-            tmp.pool.splice(0, 1);
-
-        if (tmp.pool.length < 9) {
-            data.rsv = 0;
-            data.k9 = 0;
-            data.d9 = 0;
-        }
-        else {
-            let maxP = -1;
-            let minP = 10000;
-            tmp.pool.forEach(function(p){
-                maxP = Math.max(maxP, p);
-                minP = Math.min(minP, p);
-            });
-            data.rsv = Math.round(((data.stockClosePrice - minP) * 100) / (maxP - minP));
-            data.k9 = Math.round((tmp.prevK9 * 0.6667) + (data.rsv * 0.3333));
-            data.d9 = Math.round((tmp.prevD9 * 0.6667) + (data.k9 * 0.3333));
-            //logger.info(data.rsv + ',' + data.k9 + ',' + data.d9 + ',' + tmp.prevK9 + ',' + tmp.prevD9);
-            tmp.prevK9 = data.k9;
-            tmp.prevD9 = data.d9;
-        }
-
-        //
         // check existed or not
         //
         let stockDay = await getStockDay(data.stockDbId, item[0]);
@@ -420,6 +384,95 @@ var addStock = async function(stockJson, type, tmp) {
             //logger.info(sql);
             await exec(sql);
         }
+    }
+
+    return;
+}
+
+var calcStock = async function(stockId) {
+    let tmp = {
+        ma5: [],
+        ma10: [],
+        ma20: [],
+        ma40: [],
+        ma60: [],
+        pool: [],
+        prevK9: 0,
+        prevD9: 0,
+    };
+
+    var stock = await getStock([stockId]);
+    if (stock.code != 'OK' || stock.data == undefined) {
+        return;
+    }
+    var stockdata = await getAllStockDay(stock.data[0].stock_id);
+    if (stockdata.code != 'OK' || stockdata.data == undefined) {
+        return;
+    }
+    // save or update stock_day table
+    for (let i=0 ; i<stockdata.data.length ; i++) {
+        let data = stockdata.data[i];
+        // calculate MA
+        //
+        data.ma5 = ma(tmp.ma5, data.stock_close_price, 5);
+        data.ma10 = ma(tmp.ma10, data.stock_close_price, 10);
+        data.ma20 = ma(tmp.ma20, data.stock_close_price, 20);
+        data.ma40 = ma(tmp.ma40, data.stock_close_price, 40);
+        data.ma60 = ma(tmp.ma60, data.stock_close_price, 60);
+
+        //
+        // calculate RSI/K9/D9
+        //
+        tmp.pool.push(data.stock_close_price);
+        if (tmp.pool.length > 9)
+            tmp.pool.splice(0, 1);
+
+        if (tmp.pool.length < 9) {
+            data.rsv = 0;
+            data.k9 = 0;
+            data.d9 = 0;
+        }
+        else {
+            let maxP = -1;
+            let minP = 10000;
+            tmp.pool.forEach(function(p){
+                maxP = Math.max(maxP, p);
+                minP = Math.min(minP, p);
+            });
+            data.rsv = Math.round(((data.stock_close_price - minP) * 100) / (maxP - minP));
+            data.k9 = Math.round((tmp.prevK9 * 0.6667) + (data.rsv * 0.3333));
+            data.d9 = Math.round((tmp.prevD9 * 0.6667) + (data.k9 * 0.3333));
+            //logger.info(data.rsv + ',' + data.k9 + ',' + data.d9 + ',' + tmp.prevK9 + ',' + tmp.prevD9);
+            tmp.prevK9 = data.k9;
+            tmp.prevD9 = data.d9;
+        }
+
+        //logger.info('after-------------');
+        //logger.info(data);
+        // update
+        let sql = "UPDATE stock_day SET " 
+                + "rsv={rsv},"
+                + "k9={k9},"
+                + "d9={d9},"
+                + "ma5={ma5},"
+                + "ma10={ma10},"
+                + "ma20={ma20},"
+                + "ma40={ma40},"
+                + "ma60={ma60} "
+                + "WHERE "
+                + "stock_day_id={stock_day_id};";
+        try {
+            sql = sql.format(data);
+        }
+        catch (err) {
+            logger.info('failed to update stock_day');
+            logger.info(sql);
+            logger.info(err);
+            continue;
+        }
+
+        //logger.info(sql);
+        await exec(sql);
     }
 
     return;
@@ -493,3 +546,4 @@ module.exports.addAlgoSettings = addAlgoSettings;
 module.exports.getAlgoSettings = getAlgoSettings;
 module.exports.getAlgoSettingsByUserName = getAlgoSettingsByUserName;
 module.exports.updateAlgoSettings = updateAlgoSettings;
+module.exports.calcStock = calcStock;

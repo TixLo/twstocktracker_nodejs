@@ -30,6 +30,15 @@ var buyBEvt = function(val) {
     }
 }
 
+var buyEQEvt = function(val) {
+    if (val == 'trendUp' || val == 'trendDown') {
+        $('#buyB').prop('hidden', true);
+    }
+    else {
+        $('#buyB').prop('hidden', false);
+    }
+}
+
 var buyCondAdd = function() {
     let buyA = $('#buyA').val();
     let buyEQ = $('#buyEQ').val();
@@ -40,9 +49,15 @@ var buyCondAdd = function() {
     //console.log(buyA + ',' + buyEQ + ',' + buyB + ',' + buyBValue + ',' + buyC);
 
     let legal = true;
-    if (buyA == '' || buyEQ == '' || buyB == '') {
+    if (buyA == '' || buyEQ == '' || (buyB == '' && (buyEQ != 'trendUp' && buyEQ != 'trendDown'))) {
         legal = false;
         errMsg = '參數不能為空';
+    }
+    else if (buyEQ == 'trendUp' || buyEQ == 'trendDown') {
+        if ($('#buyC').val() < 2) {
+            legal = false;
+            errMsg = '天數至少要2天以上';
+        }
     }
     else if (buyA != 'PRICE') {
         if (parseInt(buyBValue) < 0 || parseInt(buyBValue) > 100) {
@@ -92,7 +107,13 @@ var updateBuyCond = function() {
         else
             cond += item.A.type;
 
-        cond += ' ' + item.E + ' ';
+        if (item.E == 'trendUp')
+            cond += ' 趨勢往上 ';
+        else if (item.E == 'trendDown')
+            cond += ' 趨勢往下 ';
+        else
+            cond += ' ' + item.E + ' ';
+
         if (item.B.type == 'CONST')
             cond += item.B.value;
         else
@@ -119,6 +140,10 @@ var delBuyCond = function(index) {
 var regBuyEvent = function() {
     $('#buyA').on('change', function(){
         buyAEvt($(this).val());
+    });
+
+    $('#buyEQ').on('change', function(){
+        buyEQEvt($(this).val());
     });
 
     $('#buyB').on('change', function(){

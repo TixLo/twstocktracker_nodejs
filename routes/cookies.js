@@ -2,7 +2,7 @@ var logger = require('log4js').getLogger('cookies');
 var stockdb = require('../controller/stockdb.js');
 
 var check = async function(cookies) {
-    logger.info(cookies);
+    //logger.info(cookies);
     if (cookies == undefined)
         return false;
 

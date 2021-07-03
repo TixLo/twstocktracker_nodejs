@@ -17,6 +17,7 @@
                 <div class="form-inline">
                     <select class="form-control m-2" id="sellA">
                         <option value=''>- 選擇 -</option>
+                        <option value='StopLoss'>停損點(%)</option>
                         <option value='PRICE'>股價</option>
                         <option value='5MA'>5MA</option>
                         <option value='10MA'>10MA</option>
@@ -34,6 +35,8 @@
                         <option value='<='><=</option>
                         <option value='='>=</option>
                         <option value='!='>!=</option>
+                        <option value='trendUp'>趨勢往上</option>
+                        <option value='trendDown'>趨勢往下</option>
                     </select>
                     <select class="form-control m-2" id="sellB">
                         <option value=''>- 選擇 -</option>
@@ -57,6 +60,7 @@
                         <option value=7>7 天</option>
                     </select>
                 </div>
+                <label class="p-1" id="StopLossDesc" hidden>E.g. -5 -> 下跌超過5% 即賣出</label>
             </td>
             <td class="align-middle" style="width: 12%">
                 <button type="button" class="btn btn-light text-center border border-dark" style="background-color:transparent" id="sellCondAdd">
@@ -68,13 +72,14 @@
                     <thead class="table-info">
                         <th></th>
                         <th>
-                            <span class="ml-3">滿足以下條件成立時<span class="text-primary">賣出</span></span>
+                            <span class="ml-3">滿足所有以下條件時<span class="text-primary">賣出</span></span>
                         </th>
                         <th></th>
                     </thead>
                     <tbody id="sellCondList">
                     </tbody>
                 </table>
+                <label class="p-1 text-danger" id="StopLossDesc2" hidden>停損點規則為獨立條件, 一但成立, 會立即賣出股票</label>
             </td>
         </tr>
     </tbody>

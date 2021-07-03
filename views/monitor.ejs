@@ -21,30 +21,51 @@
 </head>
 <body>
     <% include modal %>
-    <div class="card">
-        <div class="card-header">參數設定</div>
-        <div class="card-body">
-            <% include tradingCondition %>
+    <% include tradingCondition %>
+
+    <div class="accordion md-accordion" id="observedArea" role="tablist" aria-multiselectable="true">
+        <div class="card">
+            <div class="card-header" role="tab" id="headingObserved">
+                <a data-toggle="collapse" data-parent="#observedArea" href="#collapseObserved" aria-expanded="true"
+                    aria-controls="collapseObserved">
+                <div class="mb-0">
+                    觀察中的股票 <i class="fas fa-angle-down rotate-icon"></i>
+                </div>
+                </a>
+            </div>
+            <div id="collapseObserved" class="collapse show" role="tabpanel" aria-labelledby="headingObserved"
+                data-parent="#observedArea">
+            <div class="card-body">
+                <% include observedStocks %>
+            </div>
         </div>
     </div>
-    <div class="card">
-        <div class="card-header">觀察中的股票</div>
-        <div class="card-body">
-            <% include observedStocks %>
-        </div>
-    </div>
+
     <div class="card">
         <div class="card-header">股票線圖</div>
         <div class="card-body">
             <% include candlestick %>
         </div>
     </div>
-    <div class="card">
-        <div class="card-header">歷史交易紀錄</div>
-        <div class="card-body">
-            <% include tradeHistory %>
+
+    <div class="accordion md-accordion" id="historyArea" role="tablist" aria-multiselectable="true">
+        <div class="card">
+            <div class="card-header" role="tab" id="headingHistory">
+                <a data-toggle="collapse" data-parent="#historyArea" href="#collapseHistory" aria-expanded="true"
+                    aria-controls="collapseHistory">
+                <div class="mb-0">
+                    歷史交易紀錄 <i class="fas fa-angle-down rotate-icon"></i>
+                </div>
+                </a>
+            </div>
+            <div id="collapseHistory" class="collapse show" role="tabpanel" aria-labelledby="headingHistory"
+                data-parent="#historyArea">
+            <div class="card-body">
+                <% include tradeHistory %>
+            </div>
         </div>
     </div>
+
     <br><br>
     <% include footer %>
 </body>
@@ -85,7 +106,9 @@ var showApplyLoading = function() {
 }
 
 var hideApplyLoading = function() {
-    $('#waitingForApply').modal('hide');
+    setTimeout(function(){
+        $('#waitingForApply').modal('hide');
+    },500);
 }
 
 var initGraph = function(buy = undefined, sell = undefined) {
@@ -199,7 +222,7 @@ var applySelectStock = function(focusStockId) {
                 let sell = [];
                 trades.forEach(function(item){
                     buy.push({date: item.buy.date, price: item.buy.price});
-                    if (item.sell.date == 'RealTime')
+                    if (item.sell.realtime == true)
                         return;
                     sell.push({date: item.sell.date, price: item.sell.price});
                 });
@@ -300,6 +323,9 @@ var loadMonitorStocks = function() {
         }
     }).always(function(){
         hideApplyLoading();
+<% if (showtutorial == true) { %>
+        $('#tutorialModal').modal('show');
+<% } %>
     });
 }
 
@@ -308,6 +334,10 @@ $('#resemu').on('click', function(){
     semuStocks = {};
     loadMonitorStocks();
     $('#tradeHistoryBody').empty();;
+});
+
+$('#configHelp').on('click', function() {
+    $('#tutorialModal').modal('show');
 });
 
 $('#saveConfig').on('click', function() {
@@ -328,6 +358,7 @@ $('#saveConfig').on('click', function() {
         }
     }).always(function(){
         hideApplyLoading();
+        showPopup('儲存成功');
     });
 });
 
@@ -375,8 +406,12 @@ $('#inputNameBtn').on('click', function(){
         data: {name: name},
         success: function(res){
             console.log(res);
-            if (res.status == 'OK')
-                location.reload();
+            if (res.status == 'OK') {
+                if (res.showtutorial == true)
+                    window.location.href = "/?showtutorial=true";
+                else
+                    window.location.href = "/";
+            }
         }
     }).always(function(){
         hideApplyLoading();

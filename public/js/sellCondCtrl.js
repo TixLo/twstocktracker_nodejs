@@ -1,7 +1,14 @@
 var sellAEvt = function(val) {
+    $('#sellBValue').val('');
     $('#sellB').find('option').each(function(){
         $(this).prop('hidden', false);
     });
+
+    $('#sellEQ').find('option').each(function(){
+        $(this).prop('hidden', false);
+    });
+    $('#sellC').prop('hidden', false);
+    $('#StopLossDesc').prop('hidden', true);
 
     if (val == 'PRICE') {
         $('#sellB').find('option').each(function(){
@@ -10,6 +17,21 @@ var sellAEvt = function(val) {
         });
         $('#sellB').val('CONST').change();
     } 
+    else if (val == 'StopLoss') {
+        $('#sellEQ').find('option').each(function(){
+            if ($(this).val() != '<=')
+                $(this).prop('hidden', true);
+        });
+        $('#sellEQ').val('<=').change();
+
+        $('#sellB').find('option').each(function(){
+            if ($(this).val() != 'CONST')
+                $(this).prop('hidden', true);
+        });
+        $('#sellB').val('CONST').change();
+        $('#sellC').prop('hidden', true);
+        $('#StopLossDesc').prop('hidden', false);
+    }
     else {
         $('#sellB').find('option').each(function(){
             if ($(this).val() == val)
@@ -30,6 +52,15 @@ var sellBEvt = function(val) {
     }
 }
 
+var sellEQEvt = function(val) {
+    if (val == 'trendUp' || val == 'trendDown') {
+        $('#sellB').prop('hidden', true);
+    }
+    else {
+        $('#sellB').prop('hidden', false);
+    }
+}
+
 var sellCondAdd = function() {
     let sellA = $('#sellA').val();
     let sellEQ = $('#sellEQ').val();
@@ -40,14 +71,28 @@ var sellCondAdd = function() {
     //console.log(sellA + ',' + sellEQ + ',' + sellB + ',' + sellBValue + ',' + sellC);
 
     let legal = true;
-    if (sellA == '' || sellEQ == '' || sellB == '') {
+    if (sellA == '' || sellEQ == '' || (sellB == '' && (sellEQ != 'trendUp' && sellEQ != 'trendDown'))) {
         legal = false;
         errMsg = '參數不能為空';
     }
-    else if (sellA != 'PRICE') {
-        if (parseInt(sellBValue) < 0 || parseInt(sellBValue) > 100) {
+    else if (sellEQ == 'trendUp' || sellEQ == 'trendDown') {
+        if ($('#sellC').val() < 2) {
             legal = false;
-            errMsg = '定值範圍只能是介於 0 ~ 100';
+            errMsg = '天數至少要2天以上';
+        }
+    }
+    else if (sellA != 'PRICE') {
+        if (sellA == 'StopLoss') {
+            if (parseInt(sellBValue) >=0 ) {
+                legal = false;
+                errMsg = '停損點只能是負值';
+            }
+        }
+        else {
+            if (parseInt(sellBValue) < 0 || parseInt(sellBValue) > 100) {
+                legal = false;
+                errMsg = '定值範圍只能是介於 0 ~ 100';
+            }
         }
     }
     else if (sellB == 'CONST') {
@@ -77,29 +122,51 @@ var updateSellCond = function() {
     if (sellAlgo == undefined)
         return;
 
+    $('#StopLossDesc2').prop('hidden', true);
     let cond = '';
     let html = '';
+    let cnt = 0;
     for (let i=0 ; i<sellAlgo.length ; i++) {
         item = sellAlgo[i];
         //console.log(item);
         html += '<tr><td>\n';
-        html += (i + 1);
+        if (item.A.type == 'StopLoss') {
+            html += '*';
+            $('#StopLossDesc2').prop('hidden', false);
+        }
+        else {
+            html += (cnt + 1);
+            cnt++;
+        }
         html += '</td><td>\n';
 
         let cond = '';
         if (item.A.type == 'PRICE')
             cond += '股價'
+        else if (item.A.type == 'StopLoss')
+            cond += '停損點'
         else
             cond += item.A.type;
 
-        cond += ' ' + item.E + ' ';
+        if (item.E == 'trendUp')
+            cond += ' 趨勢往上 ';
+        else if (item.E == 'trendDown')
+            cond += ' 趨勢往下 ';
+        else
+            cond += ' ' + item.E + ' ';
+
         if (item.B.type == 'CONST')
             cond += item.B.value;
         else
             cond += item.B.type;
+
+        if (item.A.type == 'StopLoss')
+            cond += '%';
+
         html += cond;
 
-        html += ',連續' + item.C + '天';
+        if (item.A.type != 'StopLoss')
+            html += ',連續' + item.C + '天';
 
         html += '</td><td>\n';
         html += '<img class="Image pt-0 pb-0" '
@@ -119,6 +186,10 @@ var delSellCond = function(index) {
 var regSellEvent = function() {
     $('#sellA').on('change', function(){
         sellAEvt($(this).val());
+    });
+
+    $('#sellEQ').on('change', function(){
+        sellEQEvt($(this).val());
     });
 
     $('#sellB').on('change', function(){

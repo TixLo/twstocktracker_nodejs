@@ -148,7 +148,7 @@
     </div>
     <hr>
     <div class="p-2">
-        <label class="text-dark">選取想要監控的股票(最多10筆), 選擇好之後點選"確認":</label>
+        <label class="text-dark">選取想要監控的股票(最多<%= maxMonitoredStocks %>筆), 選擇好之後點選"確認":</label>
         <input type="button" id="confirmStocks" value="確認" class="btn btn-dark" />
         <% if (username == 'ADMIN') { %>
             <input type="button" id="deleteStocks" value="刪除" class="btn btn-primary" />
@@ -203,6 +203,8 @@
         </thead>
     </table>
     <% } %>
+    <br><br>
+    <% include footer %>
 </body>
 <script>
 
@@ -350,7 +352,7 @@ var updateSavedTableFunc = function(json) {
 }
 
 var addMonitorStocksOKFunc = function(json) {
-    window.location.href = "/stock/monitor";
+    window.location.href = "/";
 }
 
 $(function() {
