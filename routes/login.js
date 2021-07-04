@@ -33,13 +33,15 @@ router.get('/', async function(req, res, next) {
         }
 
         res.render('monitor', {
-            username: req.cookies.profile.username,
+            username: await cookies.getUsername(req.cookies),
+            fullname: req.cookies.profile.username,
             showtutorial: showtutorial
         });
     }
     else {
         res.render('monitor', {
             username: 'unknown',
+            fullname: '',
             showtutorial: false
         });
     }
@@ -50,10 +52,12 @@ router.post('/login', async function(req, res, next) {
                 req.socket.remoteAddress ||
                 null;
     logger.info('login from ' + ip);
+    //login from ::ffff:222.99.61.72
     //logger.info(req.body);
 
-    var ret = await stockdb.getUserByName(req.body.name);
-    var username = req.body.name;
+    let base64IP = Buffer.from(ip).toString('base64');
+    var username = base64IP + '-' + req.body.name;
+    var ret = await stockdb.getUserByName(username);
     var showtutorial = false;
     //logger.info(ret);
     if (ret.code == 'ERROR' || ret.data == undefined) {
@@ -88,12 +92,13 @@ router.get('/warehouse', async function(req, res, next) {
                 null;
     logger.info('warehouse from ' + ip);
     if (await cookies.check(req.cookies) == false) {
-        redirect(res, '/login');
+        redirect(res, '/');
         return;
     }
     res.render('warehouse', {
         maxMonitoredStocks: 20,
-        username: req.cookies.profile.username
+        username: await cookies.getUsername(req.cookies.profile.username),
+        fullname: req.cookies.profile.username,
     });
 });
 

@@ -77,7 +77,7 @@ var sellCondAdd = function() {
     //console.log(sellA + ',' + sellEQ + ',' + sellB + ',' + sellBValue + ',' + sellC);
 
     let legal = true;
-    if (sellA == '' || sellEQ == '' || (sellB == '' && (sellEQ != 'trendUp' && sellEQ != 'trendDown'))) {
+    if (sellC == '' || sellA == '' || sellEQ == '' || (sellB == '' && (sellEQ != 'trendUp' && sellEQ != 'trendDown'))) {
         legal = false;
         errMsg = '參數不能為空';
     }

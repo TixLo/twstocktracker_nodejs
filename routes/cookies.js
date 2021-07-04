@@ -34,5 +34,30 @@ var create = function(res, username) {
     }, cookieOptions);
 }
 
+var getUsername = async function(cookies) {
+    //logger.info(cookies);
+    if (cookies == undefined)
+        return undefined;
+
+    if (cookies.profile == undefined)
+        return undefined;
+
+    let username = cookies.profile.username;
+    logger.info('username: ' + username);
+    if (username == undefined)
+        return undefined;
+
+    var ret = await stockdb.getUserByName(username);
+    if (ret.code == 'ERROR' || ret.data == undefined) {
+        return undefined;
+    }
+
+    if (username.split('-').length < 2)
+        return undefined;
+    logger.info('real username:' + username.split('-')[1]);
+    return username.split('-')[1];
+}
+
 module.exports.check = check;
 module.exports.create = create;;
+module.exports.getUsername = getUsername;;

@@ -55,7 +55,7 @@ var buyCondAdd = function() {
     //console.log(buyA + ',' + buyEQ + ',' + buyB + ',' + buyBValue + ',' + buyC);
 
     let legal = true;
-    if (buyA == '' || buyEQ == '' || (buyB == '' && (buyEQ != 'trendUp' && buyEQ != 'trendDown'))) {
+    if (buyC == '' || buyA == '' || buyEQ == '' || (buyB == '' && (buyEQ != 'trendUp' && buyEQ != 'trendDown'))) {
         legal = false;
         errMsg = '參數不能為空';
     }

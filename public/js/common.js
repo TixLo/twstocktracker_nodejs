@@ -13,7 +13,7 @@ var initSocketIO = function() {
     socket = io.connect();
 
     // username in banner.ejs
-    socket.emit('hi', {username:$('#username').text()});
+    socket.emit('hi', {username:$('#fullname').text()});
 
     // for warehouse
     socket.on('online', onlineCB);

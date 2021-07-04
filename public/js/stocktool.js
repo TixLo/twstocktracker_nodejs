@@ -369,26 +369,28 @@ function initStockGraph(dataFile, options) {
             return -1;
         }
 
-        let trades = []
-        if (options.buy) {
-            options.buy.forEach(function(item){
-                var buyIdx = getXIndex(item.date);
-                if (buyIdx < 0)
-                    return;
-                trades.push({ date: data[buyIdx].date, type: "buy", price: item.price })
-            });
+        if (options.trade) {
+            let trades = []
+            if (options.buy) {
+                options.buy.forEach(function(item){
+                    var buyIdx = getXIndex(item.date);
+                    if (buyIdx < 0)
+                        return;
+                    trades.push({ date: data[buyIdx].date, type: "buy", price: item.price })
+                });
+            }
+            if (options.sell) {
+                options.sell.forEach(function(item){
+                    var sellIdx = getXIndex(item.date);
+                    if (sellIdx < 0)
+                        return;
+                    trades.push({ date: data[sellIdx].date, type: "sell", price: item.price })
+                });
+            }
+    
+            svg.append("g").attr("class", "tradearrow");
+            svg.select("g.tradearrow").datum(trades).call(tradearrow);
         }
-        if (options.sell) {
-            options.sell.forEach(function(item){
-                var sellIdx = getXIndex(item.date);
-                if (sellIdx < 0)
-                    return;
-                trades.push({ date: data[sellIdx].date, type: "sell", price: item.price })
-            });
-        }
-
-        svg.append("g").attr("class", "tradearrow");
-        svg.select("g.tradearrow").datum(trades).call(tradearrow);
         //console.log(data);
     });
 }

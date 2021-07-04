@@ -59,6 +59,8 @@ var disconnect = function(socket) {
 }
 
 var hi = async function(socket, data) {
+    logger.info('hi!!!');
+    logger.info(data);
     if (people[data.username] == undefined)
         people[data.username] = 0;
     people[data.username]++;
@@ -143,7 +145,7 @@ var addMonitorStocks = async function(socket, data) {
         return;
     }
 
-    logger.info('socket.usrname: ' + socket.username);
+    //logger.info('socket.usrname: ' + socket.username);
     let user = await stockdb.getUserByName(socket.username);
     //logger.info(user);
     if (user.data == undefined) {
