@@ -1,6 +1,7 @@
 var mysql = require('mysql');
 var logger = require('log4js').getLogger('DB');
 var format = require('string-format');
+var sysTool = require('../utils/sysTool.js');
 
 format.extend(String.prototype, {})
 
@@ -31,15 +32,17 @@ var exec = function(sql, values) {
     return new Promise(( resolve, reject ) => {
         pool.getConnection(function(err, connection) {
             if (err) {
-                reject( err )
+                logger.info('SQL error 1');
+                reject({code: 'ERROR'});
             } else {
                 connection.query(sql, values, ( err, rows) => {
                     if ( err ) {
+                        logger.info('SQL error 2');
                         reject({code: 'ERROR'})
                     } else {
                         if (rows.length == 0)
                             resolve({code: 'OK'});
-                        else
+                        else {
                             var data = Object.values(JSON.parse(JSON.stringify(rows)));
                             if (data != undefined) {
                                 if (data.length == 1) {
@@ -51,15 +54,18 @@ var exec = function(sql, values) {
                                         break;
                                     }
                                 }
-                            }
-                            
+                            } // if (data!= undefined)
                             resolve({code: 'OK', data: data});
+                        }
                     }
                     connection.release()
-                })
+                }) // connection.query
             }
-        })
-    })
+        }) // pool.getConnection
+    }).catch((e) => { // Promise
+        logger.info('SQL error 3');
+        reject({code: 'ERROR'});
+    }); // Promise
 }
 
 var dateToLong = function(dateString) {
@@ -175,8 +181,20 @@ var getStockDay = async function(stockId, date) {
     return await exec(sql);
 }
 
+var stockDayIsExisted = async function(stockId, date) {
+    let dateLong = dateToLong(date);
+    let sql = "SELECT 1 FROM `stock_day` WHERE date_stock={0} and stock_id='{1}' limit 1";
+    sql = sql.format(dateLong, stockId);
+    return await exec(sql);
+}
+
 var getAllStockDay = async function(stockId) {
     let sql = "SELECT * FROM `stock_day` WHERE stock_id={0}".format(stockId);
+    return await exec(sql);
+}
+
+var getAllStockDayOnlyTime = async function(stockId) {
+    let sql = "SELECT date_stock FROM `stock_day` WHERE stock_id={0}".format(stockId);
     return await exec(sql);
 }
 
@@ -270,7 +288,7 @@ var addStock = async function(stockJson, type) {
         // logger.info('insert into DB');
         // add
         let sql = "INSERT INTO " 
-                + "stock (stock_name, stock_no, stock_type) VALUES ('{0}', '{1}', '{2}')";
+                + "stock (stock_name, stock_no, stock_type, stock_count) VALUES ('{0}', '{1}', '{2}', 0)";
         try {
             sql = sql.format(stockName, stockId, typeDesc);
             await exec(sql);
@@ -280,13 +298,24 @@ var addStock = async function(stockJson, type) {
             logger.info(err);
             return;
         }
+        stock = await getStock([stockId]);
     }
-    stock = await getStock([stockId]);
-    //logger.info(stock);
+
+    // get existed stock
+    let allStock = {};
+    let all = await getAllStockDayOnlyTime(stock.data[0].stock_id);
+    if (all.data != undefined) {
+        all.data.forEach(function(item){
+            allStock[item.date_stock] = true;
+        });
+    }
 
     // save or update stock_day table
+    let batch = '';
     for (let i=0 ; i<stockJson.data.length ; i++) {
         let item = stockJson.data[i];
+        if (allStock[dateToLong(item[0]).toString()] != undefined)
+            continue;
         //logger.info(item)
         //check data
         let ok = true;
@@ -322,36 +351,8 @@ var addStock = async function(stockJson, type) {
             ma60: 0.0
         };
         //logger.info(data);
-        let sql = '';
 
-        //
-        // check existed or not
-        //
-        let stockDay = await getStockDay(data.stockDbId, item[0]);
-        if (stockDay.code != 'OK' || stockDay.data == undefined) {
-            //logger.info('insert {stockId} , {stockDateStr}'.format(data));
-            // add
-            sql = "INSERT INTO " 
-                    + "stock_day (" 
-                    + "date_stock,"
-                    + "stock_close_price,"
-                    + "stock_cost,"
-                    + "stock_deal_num,"
-                    + "stock_delta_price,"
-                    + "stock_highest_price,"
-                    + "stock_id,"
-                    + "stock_lowest_price,"
-                    + "stock_num,"
-                    + "stock_open_price,"
-                    + "rsv,"
-                    + "k9,"
-                    + "d9,"
-                    + "ma5,"
-                    + "ma10,"
-                    + "ma20,"
-                    + "ma40,"
-                    + "ma60"
-                    + ") VALUES ("
+        let d = "(" 
                     + "{stockDate},"
                     + "{stockClosePrice},"
                     + "{stockDealPrice},"
@@ -361,31 +362,33 @@ var addStock = async function(stockJson, type) {
                     + "{stockDbId},"
                     + "{stockLowestPrice},"
                     + "{stockNum},"
-                    + "{stockOpenPrice},"
-                    + "{rsv},"
-                    + "{k9},"
-                    + "{d9},"
-                    + "{ma5},"
-                    + "{ma10},"
-                    + "{ma20},"
-                    + "{ma40},"
-                    + "{ma60}"
+                    + "{stockOpenPrice}"
                     + ")";
-            try {
-                sql = sql.format(data);
-            }
-            catch (err) {
-                logger.info('failed to insert stock_day');
-                logger.info(sql);
-                logger.info(err);
-                continue;
-            }
-
-            //logger.info(sql);
-            await exec(sql);
-        }
+        batch += d.format(data);
+        if (i < stockJson.data.length - 1)
+            batch += ",";
     }
 
+    if (batch == '')
+        return;
+
+    sql = "INSERT INTO " 
+            + "stock_day (" 
+            + "date_stock,"
+            + "stock_close_price,"
+            + "stock_cost,"
+            + "stock_deal_num,"
+            + "stock_delta_price,"
+            + "stock_highest_price,"
+            + "stock_id,"
+            + "stock_lowest_price,"
+            + "stock_num,"
+            + "stock_open_price"
+            + ") VALUES ";
+    sql += batch;
+    sql += ";";
+
+    await exec(sql);
     return;
 }
 
@@ -401,17 +404,25 @@ var calcStock = async function(stockId) {
         prevD9: 0,
     };
 
+    logger.info('getStock by ' + stockId);
     var stock = await getStock([stockId]);
     if (stock.code != 'OK' || stock.data == undefined) {
         return;
     }
+
+    logger.info('getAllStockDay by ' + stock.data[0].stock_id);
     var stockdata = await getAllStockDay(stock.data[0].stock_id);
     if (stockdata.code != 'OK' || stockdata.data == undefined) {
         return;
     }
+    logger.info('calcStock: ' + stockId + ', length: ' + stockdata.data.length);
     // save or update stock_day table
     for (let i=0 ; i<stockdata.data.length ; i++) {
         let data = stockdata.data[i];
+        let ignore = false;
+        if (data.ma5 != 0) {
+            ignore = true;
+        }
         // calculate MA
         //
         data.ma5 = ma(tmp.ma5, data.stock_close_price, 5);
@@ -446,6 +457,9 @@ var calcStock = async function(stockId) {
             tmp.prevK9 = data.k9;
             tmp.prevD9 = data.d9;
         }
+
+        if (ignore)
+            continue;
 
         //logger.info('after-------------');
         //logger.info(data);

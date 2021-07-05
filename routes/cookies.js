@@ -20,7 +20,7 @@ var check = async function(cookies) {
     if (ret.code == 'ERROR' || ret.data == undefined) {
         return false;
     }
-    logger.info('cookie is legal');
+    //logger.info('cookie is legal');
     return true;
 }
 
@@ -43,7 +43,7 @@ var getUsername = async function(cookies) {
         return undefined;
 
     let username = cookies.profile.username;
-    logger.info('username: ' + username);
+    //logger.info('username: ' + username);
     if (username == undefined)
         return undefined;
 
@@ -53,8 +53,8 @@ var getUsername = async function(cookies) {
     }
 
     if (username.split('-').length < 2)
-        return undefined;
-    logger.info('real username:' + username.split('-')[1]);
+        return username;
+    //logger.info('real username:' + username.split('-')[1]);
     return username.split('-')[1];
 }
 

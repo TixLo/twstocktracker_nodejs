@@ -33,15 +33,13 @@ router.get('/', async function(req, res, next) {
         }
 
         res.render('monitor', {
-            username: await cookies.getUsername(req.cookies),
-            fullname: req.cookies.profile.username,
+            username: req.cookies.profile.username,
             showtutorial: showtutorial
         });
     }
     else {
         res.render('monitor', {
             username: 'unknown',
-            fullname: '',
             showtutorial: false
         });
     }
@@ -53,10 +51,14 @@ router.post('/login', async function(req, res, next) {
                 null;
     logger.info('login from ' + ip);
     //login from ::ffff:222.99.61.72
-    //logger.info(req.body);
+    logger.info(req.body);
 
-    let base64IP = Buffer.from(ip).toString('base64');
-    var username = base64IP + '-' + req.body.name;
+    var username = req.body.name;
+    //if (req.body.checked == 'true') {
+    //    let base64IP = Buffer.from(ip).toString('base64');
+    //    username = ip + '-' + req.body.name;
+    //}
+
     var ret = await stockdb.getUserByName(username);
     var showtutorial = false;
     //logger.info(ret);
@@ -97,8 +99,7 @@ router.get('/warehouse', async function(req, res, next) {
     }
     res.render('warehouse', {
         maxMonitoredStocks: 20,
-        username: await cookies.getUsername(req.cookies.profile.username),
-        fullname: req.cookies.profile.username,
+        username: req.cookies.profile.username,
     });
 });
 

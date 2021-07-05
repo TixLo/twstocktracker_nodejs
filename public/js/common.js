@@ -13,7 +13,7 @@ var initSocketIO = function() {
     socket = io.connect();
 
     // username in banner.ejs
-    socket.emit('hi', {username:$('#fullname').text()});
+    socket.emit('hi', {username:$('#username').text()});
 
     // for warehouse
     socket.on('online', onlineCB);
@@ -27,20 +27,6 @@ var initSocketIO = function() {
     socket.on('messages', messagesCB);
 
     return socket;
-}
-
-var talk = function(data) {
-    if (socket == undefined)
-        return;
-
-    socket.emit('talk', data);
-}
-
-var updateTalk = function(data) {
-    if (socket == undefined)
-        return;
-
-    socket.emit('updateTalk', data);
 }
 
 var messagesCB = function(json) {

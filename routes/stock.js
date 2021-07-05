@@ -21,7 +21,6 @@ router.get('/admin/tix/warehouse', async function(req, res, next) {
     res.render('warehouse', {
         maxMonitoredStocks: 20,
         username: 'ADMIN',
-        fullname: 'ADMIN'
     });
 });
 
@@ -122,7 +121,7 @@ router.get('/warehouse/stocks', async function(req, res, next) {
                 id: i+1, 
                 stock: item.stock_no, 
                 name: item.stock_name, 
-                count: d.data[0].COUNT, 
+                count: d.data[0].COUNT,
                 type:item.stock_type,
                 stock_db_id: item.stock_id,
                 saved: saved

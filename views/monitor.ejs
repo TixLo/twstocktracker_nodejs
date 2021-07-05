@@ -380,21 +380,6 @@ var setupFunc = function(json) {
     loadMonitorStocks();
 }
 
-$('#talk').on('click', function(){
-    $('#talkModal').modal('show');
-    updateTalk({username: '<%= username %>'});
-});
-
-$('#sendMsg').on('click', function(){
-    let message = $('#talkInput').val();
-    let data = {
-        username: '<%= username %>',
-        message: message
-    }
-
-    talk(data);
-});
-
 <% if (username == 'unknown') { %>
 $('#inputNameBtn').on('click', function(){
     let name = $('#inputName').val();

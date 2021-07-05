@@ -45,7 +45,7 @@ var processHistoryFetch = function(message) {
 
 fetchWorker.on('message', (message) => {
     logger.info('fetchWorker message');
-//    logger.info(message);
+    logger.info(message);
 });
 
 fetchHistoryWorker.on('message', (message) => {
@@ -90,6 +90,7 @@ module.exports.getHistory = function(stockId, async = false) {
 
 module.exports.pushFetchStock = async function(socket, stock, type) {
     let duplicated = false;
+
     for (let i=0 ; i<historyDict.length ; i++) {
         let item = historyDict[i];
         if (item.stock == stock) {

@@ -130,11 +130,11 @@ io.sockets.on('connection', function(socket) {
         conn.clearUsers(socket, data);
     });
 
-    socket.on('talk', function(data) {
-        conn.talk(socket, data);
-    });
+    //socket.on('talk', function(data) {
+    //    conn.talk(socket, data);
+    //});
 
-    socket.on('updateTalk', function(data) {
-        conn.updateTalk(socket, data);
-    });
+    //socket.on('updateTalk', function(data) {
+    //    conn.updateTalk(socket, data);
+    //});
 });

@@ -18,6 +18,7 @@ var get = function(date, stockId) {
     sysTool.sleep(6);
 
     try {
+        //var res = request('GET', url);
         var res = request('GET', url ,{
             timeout: 20000
         });

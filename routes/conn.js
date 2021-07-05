@@ -98,6 +98,8 @@ var hi = async function(socket, data) {
 }
 
 var deleteSavedStock = async function(socket, data) {
+    //TWSE.updateCurrMonth();
+    //return;
     //logger.info(data);
     if (data.length > 0) {
         for (let i=0 ; i<data.length ; i++) {

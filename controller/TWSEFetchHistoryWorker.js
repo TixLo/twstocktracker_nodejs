@@ -141,6 +141,3 @@ parentPort.on('message', (message) => {
         }
     }
 });
-
-
-
