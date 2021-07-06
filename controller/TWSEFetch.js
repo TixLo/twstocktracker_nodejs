@@ -4,6 +4,7 @@ var logger = log4js.getLogger('TWSE');
 var sysTool = require('../utils/sysTool.js');
 var stockdb = require('../controller/stockdb');
 var format = require('string-format');
+var stocksTable = require('../controller/StocksTable.js');
 
 format.extend(String.prototype, {})
 
@@ -11,12 +12,34 @@ var todayRTStocks = {};
 var historyEndYYYY = 2010;
 var historyEndMM = 1;
 
-var get = function(date, stockId) {
-    var url = 'http://www.twse.com.tw/exchangeReport/STOCK_DAY?date=';
-    url += date + '&stockNo=' + stockId;
-    logger.info('url: ' + url);
-    sysTool.sleep(6);
 
+function sleep (time) {
+    return new Promise((resolve) => setTimeout(resolve, time));
+}
+
+var get = async function(date, stockId) {
+    stocksTable.init();
+    var otc2Tbl = stocksTable.getOTC2();
+    var type = 'TYPE1';
+    if (otc2Tbl[stockId])
+        type = 'TYPE2';
+
+    logger.info('type: ' + type);
+
+    var url = '';
+    if (type == 'TYPE1') {
+        url = 'http://www.twse.com.tw/exchangeReport/STOCK_DAY?date=';
+        url += date + '&stockNo=' + stockId;
+    }
+    else {
+        let d1 = date.substring(0,4);
+        let d2 = parseInt(d1) - 1911;
+        url = 'http://www.tpex.org.tw/web/stock/aftertrading/daily_trading_info/st43_result.php?d=';
+        url += d2 + '/' + date.substring(4,6) + '&stkno=' + stockId;
+    }
+    logger.info('url: ' + url);
+    //sysTool.sleep(6);
+    await sleep(6000);
     try {
         //var res = request('GET', url);
         var res = request('GET', url ,{
@@ -24,19 +47,36 @@ var get = function(date, stockId) {
         });
         var json = JSON.parse(res.getBody('utf8'));
         logger.info('fetch Done');
-        if (json != undefined && json.stat != 'OK') {
-            logger.info(json);
-            return undefined;
-        }
+        if (type == 'TYPE1') {
+            if (json != undefined && json.stat != 'OK') {
+                logger.info(json);
+                return undefined;
+            }
 
-        if (json.title == undefined) {
-            logger.info('json.title == undefined');
-            logger.info(json);
-            return undefined;
+            if (json.title == undefined) {
+                logger.info('json.title == undefined');
+                logger.info(json);
+                return undefined;
+            }
+            json.name = json.title.split(' ')[2];
+            json.stockId = stockId;
+            //'日期', '成交股數', '成交金額', '開盤價', '最高價', '最低價', '收盤價', '漲跌價差', '成交筆數'
         }
+        else {
+            //logger.info(json);
+            //logger.info('----');
+            if (json == undefined || json.aaData.length == 0) {
+                logger.info(json);
+                return undefined;
+            }
 
-        json.name = json.title.split(' ')[2];
-        json.stockId = stockId;
+            json.name = json.stkName;
+            json.stockId = stockId;
+            json.data = json.aaData;
+            delete json.aaData;
+            //logger.info(json);
+        }
+        json.type = type;
         return json;
      }
     catch (e) {

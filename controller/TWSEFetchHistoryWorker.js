@@ -25,13 +25,13 @@ var getType1History = async function(stockId) {
     for (let curr=allDates.length - 1 ; curr>=0 ; curr--) {
         let date = allDates[curr];
         logger.info('[' + curr + ']: ' + date);
-        let stock = TWSEFetch.get(date, stockId);
+        let stock = await TWSEFetch.get(date, stockId);
         if (stock == undefined) {
             logger.info('Failed!!!');
             continue;
         }
         logger.info('waiting addStock...');
-        await stockdb.addStock(stock, 'TYPE1');
+        await stockdb.addStock(stock, stock.type);
         firstFetch = false;
 
         // update to main thread
@@ -114,10 +114,13 @@ var updateCurrMonth = async function() {
 
 parentPort.on('message', (message) => {
     logger.info(message);
-    if (message == undefined)
+    if (message == undefined) {
+        logger.info('message == undefined');
         return;
+    }
 
     if (message.stock == undefined || message.type == undefined) {
+        logger.info('stock == undefined || type == undefined');
         return;
     }
 

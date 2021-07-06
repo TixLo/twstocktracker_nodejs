@@ -17,7 +17,7 @@ var broadcast = function(cmd, data) {
     if (io == undefined) {
         return;
     }
-    logger.info('broadcast: ' + cmd);
+    //logger.info('broadcast: ' + cmd);
     //logger.info(data);
     io.sockets.emit(cmd, data);
 }

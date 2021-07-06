@@ -44,12 +44,12 @@ var processHistoryFetch = function(message) {
 }
 
 fetchWorker.on('message', (message) => {
-    logger.info('fetchWorker message');
-    logger.info(message);
+    //logger.info('fetchWorker message');
+    //logger.info(message);
 });
 
 fetchHistoryWorker.on('message', (message) => {
-    logger.info('fetchHistoryWorker message');
+    //logger.info('fetchHistoryWorker message');
     //logger.info(message);
     processHistoryFetch(message);
 });
@@ -111,22 +111,29 @@ module.exports.pushFetchStock = async function(socket, stock, type) {
     }
 
     stocksTable.init();
-    var tbl = stocksTable.get();
-    if (tbl[stock] != undefined) {
+    var otcTbl = stocksTable.getOTC();
+    var otc2Tbl = stocksTable.getOTC2();
+    var name = '';
+    if (otcTbl[stock] != undefined) {
         conn.addStockResult(socket, 'OK');
+        name = otcTbl[stock];
+    }
+    else if (otc2Tbl[stock] != undefined) {
+        conn.addStockResult(socket, 'OK');
+        name = otc2Tbl[stock];
     }
     else {
         conn.addStockResult(socket, 'illegal stock id');
         return false;
     }
-    //logger.info(historyDict);
     historyDict.push({
         socket: socket, 
         stock: stock, 
-        name: tbl[stock],
+        name: name,
         type: type, 
         status:'等待中...'
     });
+    //logger.info(historyDict);
     fetchHistoryWorker.postMessage({
         stock: stock, type: type
     });
@@ -135,15 +142,22 @@ module.exports.pushFetchStock = async function(socket, stock, type) {
 
 module.exports.pushFetchStockWithoutChecking = async function(socket, stock, type) {
     stocksTable.init();
-    var tbl = stocksTable.get();
-    if (tbl[stock] == undefined) {
+    var otcTbl = stocksTable.getOTC();
+    var otc2Tbl = stocksTable.getOTC2();
+    var name = '';
+    if (otcTbl[stock] != undefined) {
+        name = otcTbl[stock];
+    }
+    else if (otc2Tbl[stock] != undefined) {
+        name = otc2Tbl[stock];
+    }
+    else {
         return;
     }
-    //logger.info(historyDict);
     historyDict.push({
         socket: socket, 
         stock: stock, 
-        name: tbl[stock],
+        name: name,
         type: type, 
         status:'等待中...'
     });

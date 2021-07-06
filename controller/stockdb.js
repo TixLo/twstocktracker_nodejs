@@ -5,14 +5,26 @@ var sysTool = require('../utils/sysTool.js');
 
 format.extend(String.prototype, {})
 
-var pool = mysql.createPool({
-    host : 'localhost',
-    user : 'stock',
-    password : 'stock1688',
-    database : 'stock'
-});
+//var pool = mysql.createPool({
+//    host : 'localhost',
+//    user : 'stock',
+//    password : 'stock1688',
+//    database : 'stock'
+//});
 
-var connected = false;
+var pool = undefined;
+
+var init = function() {
+    if (pool != undefined)
+        return;
+
+    pool = mysql.createPool({
+        host : 'localhost',
+        user : 'stock',
+        password : 'stock1688',
+        database : 'stock'
+    });
+}
 
 let ma = function(array, val, len) {
     if (array.length >= len)
@@ -28,16 +40,25 @@ let ma = function(array, val, len) {
 }
 
 var exec = function(sql, values) {
+    init();
     //logger.info('exec: ' + sql);
     return new Promise(( resolve, reject ) => {
         pool.getConnection(function(err, connection) {
             if (err) {
                 logger.info('SQL error 1');
+                logger.info(err);
+                logger.info('exec: ' + sql);
+                pool.end()
+                pool = undefined
                 reject({code: 'ERROR'});
             } else {
                 connection.query(sql, values, ( err, rows) => {
                     if ( err ) {
                         logger.info('SQL error 2');
+                        logger.info(err);
+                        logger.info('exec: ' + sql);
+                        pool.end()
+                        pool = undefined
                         reject({code: 'ERROR'})
                     } else {
                         if (rows.length == 0)
@@ -64,7 +85,7 @@ var exec = function(sql, values) {
         }) // pool.getConnection
     }).catch((e) => { // Promise
         logger.info('SQL error 3');
-        reject({code: 'ERROR'});
+        //reject({code: 'ERROR'});
     }); // Promise
 }
 
@@ -278,6 +299,8 @@ var addStock = async function(stockJson, type) {
     let typeDesc = '';
     if (type == 'TYPE1')
         typeDesc = '上市';
+    else if (type == 'TYPE2')
+        typeDesc = '上櫃';
 
     //
     // save or update stock table
@@ -450,9 +473,16 @@ var calcStock = async function(stockId) {
                 maxP = Math.max(maxP, p);
                 minP = Math.min(minP, p);
             });
-            data.rsv = Math.round(((data.stock_close_price - minP) * 100) / (maxP - minP));
-            data.k9 = Math.round((tmp.prevK9 * 0.6667) + (data.rsv * 0.3333));
-            data.d9 = Math.round((tmp.prevD9 * 0.6667) + (data.k9 * 0.3333));
+            if (maxP == minP) {
+                data.rsv = 0;
+                data.k9 = 0;
+                data.d9 = 0;
+            }
+            else {
+                data.rsv = Math.round(((data.stock_close_price - minP) * 100) / (maxP - minP));
+                data.k9 = Math.round((tmp.prevK9 * 0.6667) + (data.rsv * 0.3333));
+                data.d9 = Math.round((tmp.prevD9 * 0.6667) + (data.k9 * 0.3333));
+            }
             //logger.info(data.rsv + ',' + data.k9 + ',' + data.d9 + ',' + tmp.prevK9 + ',' + tmp.prevD9);
             tmp.prevK9 = data.k9;
             tmp.prevD9 = data.d9;

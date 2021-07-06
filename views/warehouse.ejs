@@ -146,9 +146,6 @@
         <div class="col-sm-4">
             <input type="text" class="form-control" id="inputStockId" placeholder="請輸入股票代號">
         </div>
-        <select class="selectpicker">
-            <option value='TYPE1'>上市</option>
-        </select>
         &nbsp;&nbsp;
         <input type="button" id="addStock" value="新增" class="btn btn-dark" />
         <button class="btn btn-light" id="addStockLoading" type="button" disabled hidden>
@@ -295,7 +292,6 @@ function updateQueuedTable(code) {
 function setAddStockButton(enabled) {
     $('#addStock').attr('disabled', !enabled);
     $('#inputStockId').attr('disabled', !enabled);
-    $('.selectpicker').attr('disabled', !enabled);
     $('#addStockLoading').attr('hidden', enabled);
 }
 
@@ -333,7 +329,7 @@ $('#confirmStocks').click(function() {
 
 $("#addStock").click(function() {
     let stockId = $('#inputStockId').val();
-    let selectedItem = $('.selectpicker').val();
+    let selectedItem = 'TYPE1';
     console.log('select: ' + selectedItem);
     console.log('add: ' + stockId);
 
@@ -373,6 +369,8 @@ var addStockResultFunc = function(json) {
         showPopup('新增失敗. 已經存在股票倉庫中');
     else if (json.status == 'illegal stock id')
         showPopup('新增失敗. 不合法的股票代號');
+    else if (json.status == 'to be continued')
+        showPopup('上櫃股票暫時還沒支援');
 }
 
 var updateQueuedTableFunc = function(json) {

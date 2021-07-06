@@ -14,6 +14,7 @@ var TWSE = require('./controller/TWSE.js');
 var app = express();
 
 var log4js = require('log4js');
+var pm2 = require('pm2');
 
 //setup log4js
 var logConfigPath = './config/log4js.json';
@@ -60,6 +61,28 @@ cron.schedule('0 15 * * *', function() {
     logger.info('call TWSE.updateCurrMonth()');
     TWSE.updateCurrMonth();
 });
+
+/*
+cron.schedule('29 7 * * *', function() {
+    logger.info('call pm2 restart');
+    pm2.connect(function(err) {
+        logger.info('pm2 connect!');
+        if (err) {
+            logger.info('failed to connect pm2');
+            logger.info(err);
+            process.exit(2);
+        }
+        else {
+            pm2.restart('twstocktracker', function(err) {
+                pm2.disconnect();   // Disconnects from PM2
+                if (err) {
+                    logger.info('failed to connect pm2');
+                    logger.info(err);
+                }
+            });
+    }); // pm2.connect
+}); // schedule
+*/
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

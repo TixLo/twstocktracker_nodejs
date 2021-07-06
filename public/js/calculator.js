@@ -409,9 +409,11 @@ function updateTable(stock) {
         //    status = stock.status;
         //}
         //else {
+            let p = (stock.sell.price - stock.buy.price) * 100.0 / stock.buy.price - tradeCost;
             status = '[持有中] 買入(' + stock.buy.date + ', ' + stock.buy.price
-                    + ') -> 目前價格: ' + stock.sell.price
-                    + ', 價差: ' + (stock.sell.price - stock.buy.price).toFixed(2); 
+                    + ') -> 最後收盤價格: ' + stock.sell.price
+                    + ', 價差: ' + (stock.sell.price - stock.buy.price).toFixed(2)
+                    + ' (' + p.toFixed(2) + '%)'; 
         }
         $('#status_' + stock.StockId).text(status);
         $('#status_' + stock.StockId).attr('class', 'text-primary');
