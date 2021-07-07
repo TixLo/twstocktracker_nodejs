@@ -152,6 +152,9 @@ var fetchRealTimeStockPrice = async function() {
         if (item.stock_type == '上市') {
             key += 'tse_' + item.stock_no+ '.tw';
         }
+        else if (item.stock_type == '上櫃') {
+            key += 'otc_' + item.stock_no+ '.tw';
+        }
 
         if (i < allStocks.data.length - 1)
             key += '|';
@@ -181,17 +184,27 @@ var fetchRealTimeStockPrice = async function() {
     let ID = "c";
     let PRICE = "z";
     for (let i=0 ; i<msgArray.length ; i++) {
-        todayRTStocks[msgArray[i][ID]] = {
-            date: sysDate.substring(0,4) 
-                    + '/' + sysDate.substring(4,6)
-                    + '/' + sysDate.substring(6,8),
-            price: parseFloat(msgArray[i][PRICE])
+        let p = 0;
+        if (msgArray[i][PRICE] != '-') {
+            p = parseFloat(msgArray[i][PRICE]);
+            todayRTStocks[msgArray[i][ID]] = {
+                date: sysDate.substring(0,4) 
+                        + '/' + sysDate.substring(4,6)
+                        + '/' + sysDate.substring(6,8),
+                price: p
+            }
         }
     }
+
+    logger.info(todayRTStocks);
 }
 
 var getTodayRTStocks = function() {
     return todayRTStocks;
+}
+
+var resetTodayRTStocks = function() {
+    todayRTStocks = {};
 }
 
 module.exports.get = get;
@@ -200,3 +213,4 @@ module.exports.getHistoryDate = getHistoryDate;
 module.exports.getCurrMonth = getCurrMonth;
 module.exports.fetchRealTimeStockPrice = fetchRealTimeStockPrice;
 module.exports.getTodayRTStocks = getTodayRTStocks;
+module.exports.resetTodayRTStocks = resetTodayRTStocks;

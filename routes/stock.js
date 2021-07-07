@@ -354,37 +354,6 @@ router.post('/genstock', async function(req, res, next) {
         stockDataJson.push(d);
     }
 
-    //FIXED ME!
-    //await TWSEFetch.fetchRealTimeStockPrice(); 
-    //---
-
-    //
-    // append stock data from DB
-    //
-    let rtStocks = TWSEFetch.getTodayRTStocks();
-    //logger.info(rtStocks);
-    //logger.info('stockJson.StockId: ' + stockJson.StockId);
-    if (rtStocks[stockJson.StockId] != undefined && stockDataJson.length > 0) {
-        let d = [];
-        //d.push(rtStocks[stockJson.StockId].date);
-        d.push('RealTime');
-        d.push(0);
-        d.push(0);
-        d.push(0);
-        d.push(rtStocks[stockJson.StockId].price);
-        d.push(0);
-        d.push(0);
-        d.push(0);
-        d.push(0);
-        d.push(0);
-        d.push(0);
-        d.push(0);
-        d.push(0);
-        d.push(0);
-        d.push(0);
-        stockJson.RT = d;
-    }
-    
     stockJson.Data = stockDataJson;
 
     //
@@ -445,6 +414,37 @@ router.post('/saveConfig', async function(req, res, next) {
 
     res.set({ 'content-type': 'application/json; charset=utf-8' });
     res.end('{}');
+});
+
+router.post('/getRealTimePrice', async function(req, res, next) {
+    if (await cookies.check(req.cookies) == false) {
+        res.end('');
+        return;
+    }
+
+    //logger.info(req.body.settings);
+    let user = await stockdb.getUserByName(req.cookies.profile.username);
+    if (user.data == undefined) {
+        return;
+    }
+    user = user.data[0];
+
+    let rtStocks = TWSEFetch.getTodayRTStocks();
+    let userStocks = await stockdb.getUserStocks(user);
+    let stocks = {};
+
+    //test
+    //rtStocks['2454'] = 900;
+    //rtStocks['1234'] = 20;
+    for (let i=0 ; i<userStocks.length ; i++) {
+        if (rtStocks[userStocks[i].stock_no] == undefined)
+            continue;
+        stocks[userStocks[i].stock_no] = rtStocks[userStocks[i].stock_no];
+    }
+
+    //logger.info(stocks);
+    res.set({ 'content-type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify(stocks));
 });
 
 module.exports = router;

@@ -10,6 +10,7 @@ var stockRouter = require('./routes/stock');
 var usersRouter = require('./routes/users');
 var controllerRouter = require('./routes/controller');
 var TWSE = require('./controller/TWSE.js');
+var TWSEFetch = require('./controller/TWSEFetch.js');
 
 var app = express();
 
@@ -59,30 +60,13 @@ cron.schedule('59 23 * * *', function() {
 
 cron.schedule('0 15 * * *', function() {
     logger.info('call TWSE.updateCurrMonth()');
+    TWSEFetch.resetTodayRTStocks();
     TWSE.updateCurrMonth();
 });
 
-/*
-cron.schedule('29 7 * * *', function() {
-    logger.info('call pm2 restart');
-    pm2.connect(function(err) {
-        logger.info('pm2 connect!');
-        if (err) {
-            logger.info('failed to connect pm2');
-            logger.info(err);
-            process.exit(2);
-        }
-        else {
-            pm2.restart('twstocktracker', function(err) {
-                pm2.disconnect();   // Disconnects from PM2
-                if (err) {
-                    logger.info('failed to connect pm2');
-                    logger.info(err);
-                }
-            });
-    }); // pm2.connect
-}); // schedule
-*/
+cron.schedule('*/30 * 9-14 * * 1-5', function() {
+    TWSEFetch.fetchRealTimeStockPrice();
+});
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

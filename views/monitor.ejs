@@ -1,7 +1,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>股票回測分析</title>
+    <title>股票回測分析1</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link href="https://unpkg.com/bootstrap-table@1.18.3/dist/bootstrap-table.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
@@ -405,6 +405,28 @@ $('#inputNameBtn').on('click', function(){
 });
 <% } %>
 
+var updateRealTimePrice = function() {
+    $.ajax({
+        type: 'POST',
+        url: '/stock/getRealTimePrice',
+        success: function(data){
+            //console.log(data);
+            for (const [key, value] of Object.entries(data)) {
+                let obj = $('#status_' + key);
+                if (obj == undefined || obj.length == 0)
+                    continue;
+                let status = obj.text().split(', 即時股價: ')[0];
+                status += ', 即時股價: ' + value.toFixed(2);
+                obj.text(status);
+            }
+        },
+        error: function(xhs) {
+        }
+    }).always(function(){
+        setTimeout(updateRealTimePrice, 30000);
+    });
+}
+
 $(function() {
 <% if (username == 'unknown') { %>
     $('#inputNameModal').modal('show');
@@ -418,6 +440,8 @@ $(function() {
 
     regBuyEvent();
     regSellEvent();
+
+    setTimeout(updateRealTimePrice, 30000);
 });
 </script>
 </html>
