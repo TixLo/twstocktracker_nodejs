@@ -85,12 +85,12 @@ var get = async function(date, stockId) {
     }
 }
 
-var getCurrMonth = function(stockId) {
+var getCurrMonth = async function(stockId) {
     var todayDate = new Date();
     var mm = String(todayDate.getMonth() + 1).padStart(2, '0');
     var yyyy = todayDate.getFullYear();
     var stockDate = yyyy + mm + '01';
-    var stock = get(stockDate, stockId);
+    var stock = await get(stockDate, stockId);
     return stock;
 }
 

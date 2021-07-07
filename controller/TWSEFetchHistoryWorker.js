@@ -88,16 +88,20 @@ var getType1History = async function(stockId) {
 var updateCurrMonth = async function() {
     let data = await stockdb.getAllStock();
     if (data.code == 'OK') {
+        logger.info('updateCurrMonth, data length: ' + data.data.length);
         for (let i=0 ; i<data.data.length ; i++) {
             let item = data.data[i];
             logger.info('update this month for ' + item.stock_no);
-            let stock = TWSEFetch.getCurrMonth(item.stock_no);
+            let stock = await TWSEFetch.getCurrMonth(item.stock_no);
             if (stock == undefined) {
                 logger.info('Failed!!!');
                 continue;
             }
             //logger.info(stock);
-            await stockdb.addStock(stock, 'TYPE1');
+            if (item.stock_type == '上市')
+                await stockdb.addStock(stock, 'TYPE1');
+            else
+                await stockdb.addStock(stock, 'TYPE2');
             await stockdb.calcStock(item.stock_no);
         }
     }
@@ -130,7 +134,7 @@ parentPort.on('message', (message) => {
     }
 
     if (fetching == false) {
-        if (message.type == 'TYPE1') {
+        if (message.type == 'TYPE1' || message.type == 'TYPE2') {
             getType1History(message.stock);
         }
         else {
