@@ -98,7 +98,7 @@ router.get('/warehouse', async function(req, res, next) {
         return;
     }
     res.render('warehouse', {
-        maxMonitoredStocks: 20,
+        maxMonitoredStocks: 30,
         username: req.cookies.profile.username,
     });
 });
