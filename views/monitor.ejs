@@ -416,7 +416,7 @@ var updateRealTimePrice = function() {
                 if (obj == undefined || obj.length == 0)
                     continue;
                 let status = obj.text().split(', 即時股價: ')[0];
-                status += ', 即時股價: ' + value.toFixed(2);
+                status += ', 即時股價: ' + value.price;
                 obj.text(status);
             }
         },

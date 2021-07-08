@@ -196,7 +196,7 @@ var fetchRealTimeStockPrice = async function() {
         }
     }
 
-    logger.info(todayRTStocks);
+    //logger.info(todayRTStocks);
 }
 
 var getTodayRTStocks = function() {
