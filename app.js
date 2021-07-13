@@ -64,7 +64,7 @@ cron.schedule('0 15 * * *', function() {
     TWSE.updateCurrMonth();
 });
 
-cron.schedule('*/30 * 9-14 * * 1-5', function() {
+cron.schedule('*/1 9-14 * * 1-5', function() {
     TWSEFetch.fetchRealTimeStockPrice();
 });
 

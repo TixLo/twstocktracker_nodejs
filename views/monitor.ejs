@@ -149,6 +149,9 @@ var applySelectStock = function(focusStockId) {
     if ($("#oneMonth").is(":checked")) {
         fixedDeltaMS = 30 * 24 * 60 * 60 * 1000;
     }
+    else if ($("#twoMonth").is(":checked")) {
+        fixedDeltaMS = 2 * 30 * 24 * 60 * 60 * 1000;
+    }
     else if ($("#threeMonth").is(":checked")) {
         fixedDeltaMS = 3 * 30 * 24 * 60 * 60 * 1000;
     }
