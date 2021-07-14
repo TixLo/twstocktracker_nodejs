@@ -11,7 +11,7 @@ format.extend(String.prototype, {})
 var todayRTStocks = {};
 var historyEndYYYY = 2010;
 var historyEndMM = 1;
-
+var todayRTStartTime = 0;
 
 function sleep (time) {
     return new Promise((resolve) => setTimeout(resolve, time));
@@ -139,6 +139,22 @@ var getHistory = function(stockId, stepCB = undefined) {
     return stockArray;
 }
 
+var triggerFetch = function() {
+    let curr = new Date().getTime();
+    let endDelta = 4.5 * 60 * 60 * 1000;
+    logger.info('curr: ' + curr + ', todayRTStartTime: ' + todayRTStartTime);
+    logger.info('diff: ' + (curr - todayRTStartTime) + ', endDelta: ' + endDelta);
+    if ((curr - todayRTStartTime) < endDelta) {
+        logger.info('continue to fetch realtime price');
+        setTimeout(function(){
+            fetchRealTimeStockPrice();
+        }, 10000);
+    }
+    else {
+        logger.info('stop to fetch realtime price');
+    }
+}
+
 var fetchRealTimeStockPrice = async function() {
     let allStocks = await stockdb.getAllStock();
     if (allStocks.data == undefined) {
@@ -164,20 +180,31 @@ var fetchRealTimeStockPrice = async function() {
     url = url.format(key);
     logger.info('url: ' + url);
 
+    let result = true;
     let msgArray = [];
     let sysDate = '';
     try {
-        var res = request('GET', url);
+        var res = request('GET', url ,{
+            timeout: 20000
+        });
         var json = JSON.parse(res.getBody('utf8'));
         //logger.info('fetch Done');
         //logger.info(json);
         if (json == undefined || json.msgArray == undefined) {
-            return;
+            result = false;
         }
-        msgArray = json.msgArray;
-        sysDate = json.queryTime.sysDate;
+        else {
+            msgArray = json.msgArray;
+            sysDate = json.queryTime.sysDate;
+        }
      }
     catch (e) {
+        result = false;
+    }
+
+    if (result == false) {
+        logger.info('fetch failed');
+        triggerFetch();
         return;
     }
 
@@ -197,6 +224,7 @@ var fetchRealTimeStockPrice = async function() {
     }
 
     //logger.info(todayRTStocks);
+    triggerFetch();
 }
 
 var getTodayRTStocks = function() {
@@ -207,6 +235,11 @@ var resetTodayRTStocks = function() {
     todayRTStocks = {};
 }
 
+var markTodayRTStartTime = function() {
+    todayRTStartTime = new Date().getTime();
+    logger.info('markTodayRTStartTime:' + todayRTStartTime);
+}
+
 module.exports.get = get;
 module.exports.getHistory = getHistory;
 module.exports.getHistoryDate = getHistoryDate;
@@ -214,3 +247,4 @@ module.exports.getCurrMonth = getCurrMonth;
 module.exports.fetchRealTimeStockPrice = fetchRealTimeStockPrice;
 module.exports.getTodayRTStocks = getTodayRTStocks;
 module.exports.resetTodayRTStocks = resetTodayRTStocks;
+module.exports.markTodayRTStartTime = markTodayRTStartTime;
