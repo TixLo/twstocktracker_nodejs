@@ -148,7 +148,7 @@ var triggerFetch = function() {
         logger.info('continue to fetch realtime price');
         setTimeout(function(){
             fetchRealTimeStockPrice();
-        }, 10000);
+        }, 30000);
     }
     else {
         logger.info('stop to fetch realtime price');
