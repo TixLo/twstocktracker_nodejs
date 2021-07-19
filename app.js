@@ -64,10 +64,10 @@ cron.schedule('0 15 * * *', function() {
     TWSE.updateCurrMonth();
 });
 
-cron.schedule('0 9-14 * * 1-5', function() {
-    TWSEFetch.markTodayRTStartTime();
-    TWSEFetch.fetchRealTimeStockPrice();
-});
+//cron.schedule('0 9-14 * * 1-5', function() {
+//    TWSEFetch.markTodayRTStartTime();
+//    TWSEFetch.fetchRealTimeStockPrice();
+//});
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

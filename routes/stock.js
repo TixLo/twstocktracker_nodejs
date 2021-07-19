@@ -249,7 +249,7 @@ router.post('/genstock', async function(req, res, next) {
     }
 
     let dataUrl = '';
-    logger.info(req.body);
+    //logger.info(req.body);
     if (req.body.stock == undefined) {
         response(res, 'Error', '');
         return;
