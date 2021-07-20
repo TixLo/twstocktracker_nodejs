@@ -468,7 +468,25 @@ function genTradeHistory(stockId) {
         //begin
         html += '<tr>\n';
 
-        html += '<td>'+ (semuStocks[stockId].trades.length - i) + '</td>\n';
+        if (mobile == false) { 
+            html += '<td>'+ (semuStocks[stockId].trades.length - i) + '</td>\n';
+        }
+        else {
+            // button
+            let b = shiftDate(trade.buy.date, -14);
+            let e = shiftDate(trade.sell.date, 14);
+            //console.log(b + '->' + e);
+            html += '<td>\n';
+            html += '<img class="Image pt-0 pb-0" '
+                  + 'src="../images/details.png" width="26" height="26" '
+                  + 'onClick="focusTradeStockPeriod(\'' + stockId + '\',\'' + b + '\',\'' + e + '\','
+                  + (trade.buy.price.toFixed(2)) + ','  // buy price
+                  + (trade.sell.price.toFixed(2)) + ','  // sell price
+                  + '\'' + (trade.buy.date) + '\','  // buy date index
+                  + '\'' + (trade.sell.date) + '\''  // sell date index
+                  + ')">\n';
+            html += '</td>\n';
+        }
 
         if (trade.sell.realtime == true)
             html += '<td>'+ trade.buy.date + ' -> 持有中！</td>\n';
@@ -487,20 +505,22 @@ function genTradeHistory(stockId) {
         }
         totalCost += deltaPrice * (1.0 - tradeCost / 100.0);
 
-        // button
-        let b = shiftDate(trade.buy.date, -14);
-        let e = shiftDate(trade.sell.date, 14);
-        //console.log(b + '->' + e);
-        html += '<td>\n';
-        html += '<img class="Image pt-0 pb-0" '
-              + 'src="../images/details.png" width="26" height="26" '
-              + 'onClick="focusTradeStockPeriod(\'' + stockId + '\',\'' + b + '\',\'' + e + '\','
-              + (trade.buy.price.toFixed(2)) + ','  // buy price
-              + (trade.sell.price.toFixed(2)) + ','  // sell price
-              + '\'' + (trade.buy.date) + '\','  // buy date index
-              + '\'' + (trade.sell.date) + '\''  // sell date index
-              + ')">\n';
-        html += '</td>\n';
+        if (mobile == false) { 
+            // button
+            let b = shiftDate(trade.buy.date, -14);
+            let e = shiftDate(trade.sell.date, 14);
+            //console.log(b + '->' + e);
+            html += '<td>\n';
+            html += '<img class="Image pt-0 pb-0" '
+                  + 'src="../images/details.png" width="26" height="26" '
+                  + 'onClick="focusTradeStockPeriod(\'' + stockId + '\',\'' + b + '\',\'' + e + '\','
+                  + (trade.buy.price.toFixed(2)) + ','  // buy price
+                  + (trade.sell.price.toFixed(2)) + ','  // sell price
+                  + '\'' + (trade.buy.date) + '\','  // buy date index
+                  + '\'' + (trade.sell.date) + '\''  // sell date index
+                  + ')">\n';
+            html += '</td>\n';
+        }
 
         //end
         html += '</tr>\n';

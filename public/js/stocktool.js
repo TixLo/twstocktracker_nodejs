@@ -4,6 +4,16 @@ var width = $('#stockArea').width() - margin.left - margin.right;
 var height = 600 - margin.top - margin.bottom;
 var KDH = 70;
 var volumeH = 70;
+var mCountCriteria = Math.round(width / 105);
+if (mobile == true) {
+    margin = { top: 130, right: 0, bottom: 0, left: 0 };
+    width = $('#stockArea').width() - margin.left - margin.right;
+    mCountCriteria = Math.round(width / 105);
+    margin.top = (14 / mCountCriteria) * 24;
+    height = 500 - margin.top - margin.bottom;
+    KDH = 70;
+    volumeH = 70;
+}
 
 var svg = undefined;
 
@@ -52,26 +62,63 @@ var allStockData = undefined;
 // 設定即時顯示文字區塊
 var dynamicText = [];
 
-function addDynamicText(label, h) {
-    var text = svg.append('text')
-        .style("text-anchor", "begin")
-        .attr("class", "moveLabel")
-        .attr("x", width + 10)
-        .attr("y", h);
+// text x/y for mobile
+var initmY = -margin.top + 15;
+var initmX = 10;
+var mX = initmX;
+var mY = initmY;
+var mCount = 0;
+var mCountCriteria = Math.round(width / 105);
 
-    dynamicText.push({
-        label: label,
-        svgText: text
-    });
-    return h + 22;
+function addDynamicText(label, h) {
+    if (mobile == false) {
+        var text = svg.append('text')
+            .style("text-anchor", "begin")
+            .attr("class", "moveLabel")
+            .attr("x", width + 10)
+            .attr("y", h);
+        dynamicText.push({
+            label: label,
+            svgText: text
+        });
+        return h + 22;
+    }
+    else {
+        var text = svg.append('text')
+            .style("text-anchor", "begin")
+            .attr("class", "moveLabel")
+            .attr("x", mX)
+            .attr("y", mY);
+        dynamicText.push({
+            label: label,
+            svgText: text
+        });
+
+
+        mX += 102;
+        mCount++;
+        if (mCount == mCountCriteria) {
+            mCount = 0;
+            mY += 20;
+            mX = initmX;
+        }
+
+        return h + 22;
+    }
 }
 
 // MA線圖圖示
 function drawMAIndicator(label, startPos, color) {
+    var yLabel = -15;
     var data = [
         [startPos, -20],
         [startPos + 30, -20]
     ];
+    if (mobile == true) {
+        data[0][1] = 35;
+        data[1][1] = 35;
+        yLabel = 40;
+    }
     var line = d3.line();
     svg.append("path")
         .attr("d", line(data))
@@ -83,7 +130,7 @@ function drawMAIndicator(label, startPos, color) {
         .style("text-anchor", "begin")
         .attr("class", "coords")
         .attr("x", startPos + 40)
-        .attr("y", -15)
+        .attr("y", yLabel)
         .text(label);
 
     return startPos + 90;
@@ -101,6 +148,9 @@ function initStockGraph(dataFile, options) {
 
     // init
     dynamicText = [];
+    mX = initmX;
+    mY = initmY;
+    mCount = 0;
 
     //設定畫圖區域
     svg = d3.select('#stockArea').append('svg')
@@ -174,7 +224,6 @@ function initStockGraph(dataFile, options) {
             });
 
     var h = 50;
-    h = addDynamicText('', h);
     h = addDynamicText('', h);
     h = addDynamicText('開盤', h);
     h = addDynamicText('最高', h);
@@ -284,7 +333,7 @@ function initStockGraph(dataFile, options) {
             .text(stockName + '[' + stockId + ']');
 
         // draw MA
-        let startMAPos = 60;
+        let startMAPos = 30;
         if (options.ma5) {
             startMAPos = drawMAIndicator('5MA', startMAPos, '#1f77b4');
             var ma5 = d3.line().curve(d3.curveCardinal)
@@ -401,20 +450,20 @@ function move(coords) {
 
     for (let i = 0; i < allStockData.length; i++) {
         if (coords.x == allStockData[i].date) {
-            dynamicText[1].svgText.text(timeAnnotation.format()(coords.x));
-            dynamicText[2].svgText.text(dynamicText[2].label + ':' + allStockData[i].open);
-            dynamicText[3].svgText.text(dynamicText[3].label + ':' + allStockData[i].high);
-            dynamicText[4].svgText.text(dynamicText[4].label + ':' + allStockData[i].low);
-            dynamicText[5].svgText.text(dynamicText[5].label + ':' + allStockData[i].close);
-            dynamicText[6].svgText.text(dynamicText[6].label + ':' + allStockData[i].ma5);
-            dynamicText[7].svgText.text(dynamicText[7].label + ':' + allStockData[i].ma10);
-            dynamicText[8].svgText.text(dynamicText[8].label + ':' + allStockData[i].ma20);
-            dynamicText[9].svgText.text(dynamicText[9].label + ':' + allStockData[i].ma40);
-            dynamicText[10].svgText.text(dynamicText[10].label + ':' + allStockData[i].ma60);
-            dynamicText[11].svgText.text(dynamicText[11].label + ':' + allStockData[i].rsv);
-            dynamicText[12].svgText.text(dynamicText[12].label + ':' + allStockData[i].k9);
-            dynamicText[13].svgText.text(dynamicText[13].label + ':' + allStockData[i].d9);
-            dynamicText[14].svgText.text(dynamicText[14].label + ':' + allStockData[i].volume);
+            dynamicText[0].svgText.text(timeAnnotation.format()(coords.x));
+            dynamicText[1].svgText.text(dynamicText[1].label + ':' + allStockData[i].open);
+            dynamicText[2].svgText.text(dynamicText[2].label + ':' + allStockData[i].high);
+            dynamicText[3].svgText.text(dynamicText[3].label + ':' + allStockData[i].low);
+            dynamicText[4].svgText.text(dynamicText[4].label + ':' + allStockData[i].close);
+            dynamicText[5].svgText.text(dynamicText[5].label + ':' + allStockData[i].ma5);
+            dynamicText[6].svgText.text(dynamicText[6].label + ':' + allStockData[i].ma10);
+            dynamicText[7].svgText.text(dynamicText[7].label + ':' + allStockData[i].ma20);
+            dynamicText[8].svgText.text(dynamicText[8].label + ':' + allStockData[i].ma40);
+            dynamicText[9].svgText.text(dynamicText[9].label + ':' + allStockData[i].ma60);
+            dynamicText[10].svgText.text(dynamicText[10].label + ':' + allStockData[i].rsv);
+            dynamicText[11].svgText.text(dynamicText[11].label + ':' + allStockData[i].k9);
+            dynamicText[12].svgText.text(dynamicText[12].label + ':' + allStockData[i].d9);
+            dynamicText[13].svgText.text(dynamicText[13].label + ':' + allStockData[i].volume);
         }
     }
 }

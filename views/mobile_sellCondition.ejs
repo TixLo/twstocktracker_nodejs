@@ -1,0 +1,93 @@
+<div class="d-flex justify-content-between">
+    <div class="">
+        <span class="ml-3">請選擇交易條件</span>
+        <br>
+        [<span class="m-1 text-primary">種類</span>]
+        [<span class="m-1 text-primary">條件</span>]
+        [<span class="m-1 text-primary">數值</span>]
+        [<span class="m-1 text-primary">連續達成天數</span>]
+        <br>
+        <span class="ml-1"> [新增]修改交易條件</span>
+    </div>
+    <div class="">
+    </div>
+</div>
+<table class="table table-borderless">
+    <tbody>
+        <tr>
+            <td class="align-middle">
+                <div class="form-inline">
+                    <select class="form-control m-1" id="sellA">
+                        <option value=''>- 選擇 -</option>
+                        <option value='StopLoss'>停損點(%)</option>
+                        <option value='PRICE'>股價</option>
+                        <option value='5MA'>5MA</option>
+                        <option value='10MA'>10MA</option>
+                        <option value='20MA'>20MA</option>
+                        <option value='40MA'>40MA</option>
+                        <option value='60MA'>60MA</option>
+                        <option value='K9'>K9</option>
+                        <option value='D9'>D9</option>
+                    </select>
+                    <select class="form-control m-1" id="sellEQ">
+                        <option value=''>- 選擇 -</option>
+                        <option value='>'>></option>
+                        <option value='>='>>=</option>
+                        <option value='<'><</option>
+                        <option value='<='><=</option>
+                        <option value='='>=</option>
+                        <option value='!='>!=</option>
+                        <option value='trendUp'>趨勢往上</option>
+                        <option value='trendDown'>趨勢往下</option>
+                    </select>
+                    <select class="form-control m-1" id="sellB">
+                        <option value=''>- 選擇 -</option>
+                        <option value='CONST'>定值</option>
+                        <option value='5MA'>5MA</option>
+                        <option value='10MA'>10MA</option>
+                        <option value='20MA'>20MA</option>
+                        <option value='40MA'>40MA</option>
+                        <option value='60MA'>60MA</option>
+                        <option value='K9'>K9</option>
+                        <option value='D9'>D9</option>
+                    </select>
+                    <input type="input" class="form-control" id="sellBValue" hidden/>
+                    <select class="form-control m-1" id="sellC">
+                        <option value=''>- 選擇 -</option>
+                        <option value=1>1 天</option>
+                        <option value=2>2 天</option>
+                        <option value=3>3 天</option>
+                        <option value=4>4 天</option>
+                        <option value=5>5 天</option>
+                        <option value=6>6 天</option>
+                        <option value=7>7 天</option>
+                    </select>
+                </div>
+                <label class="p-1" id="StopLossDesc" hidden>E.g. -5 -> 下跌超過5% 即賣出</label>
+            </td>
+        </tr>
+        <tr>
+            <td class="align-middle">
+                <button type="button" class="btn btn-light text-center border border-dark" style="background-color:transparent" id="sellCondAdd">
+                    <span class="">新增</span>
+                </button>
+            </td>
+        </tr>
+        <tr>
+            <td class="align-middle">
+                <table class="table rounded border table-hover">
+                    <thead class="table-info">
+                        <th></th>
+                        <th>
+                            <span class="ml-3">滿足所有以下條件時<span class="text-primary">賣出</span></span>
+                        </th>
+                        <th></th>
+                    </thead>
+                    <tbody id="sellCondList">
+                    </tbody>
+                </table>
+                <label class="p-1 text-danger" id="StopLossDesc2" hidden>停損點規則為獨立條件, 一但成立, 會立即賣出股票</label>
+            </td>
+        </tr>
+    </tbody>
+</table>

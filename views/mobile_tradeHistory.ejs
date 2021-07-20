@@ -1,0 +1,26 @@
+<div>
+    <div class="m-1">
+        <p>交易次數:<span class="text-primary ml-2" id="tradeTotalCount"></span></p>
+        <p>總報酬率:<span class="text-primary ml-2" id="tradeTotalProfit"></span></p>
+        <p>年化報酬率:<span class="text-primary ml-2" id="tradeYearProfit"></span></p>
+    </div>
+    <div class="text-right">
+        <span>效益(%) = 單筆投資報酬率(%) - 0.585%(交易成本)</span>
+    </div>
+    <div class="rounded border border-dark bg-light table-responsive text-nowrap">
+    <table
+        data-toggle="table" 
+        data-thead-classes="table-dark">
+        <thead>
+            <tr>
+                <th></th>
+                <th>時間區段</th>
+                <th>股價變化</th>
+                <th>效益(%)</th>
+            </tr>
+        </thead>
+        <tbody id="tradeHistoryBody">
+        </tbody>
+    </table>
+    </div>
+</div>

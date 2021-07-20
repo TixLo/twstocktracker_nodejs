@@ -5,6 +5,7 @@ var stockdb = require('../controller/stockdb.js');
 var cookies = require('./cookies.js');
 var conn = require('./conn.js');
 var TWSE = require('../controller/TWSE.js');
+var MobileDetect = require('mobile-detect');
 
 var redirect = function(res, url) {
     res.statusCode=302;
@@ -19,12 +20,27 @@ router.get('/clearcookie', async function(req, res, next) {
     res.end('OK');
 });
 
+var getMonitorEJS = function(req) {
+    md = new MobileDetect(req.headers['user-agent']);
+    //logger.info(md.mobile());
+    //logger.info(md.phone());
+    //logger.info(md.tablet());
+    logger.info("user device: " + md.os());
+    if (md.os() != null) {
+        logger.info("Mobile device");
+        return "mobile_monitor";
+    }
+    else {
+        logger.info("Non-Mobile device");
+        return "monitor";
+    }
+}
+
 router.get('/', async function(req, res, next) {
     var ip = req.headers['x-forwarded-for'] ||
                 req.socket.remoteAddress ||
                 null;
     logger.info('login from ' + ip);
-    
     if (await cookies.check(req.cookies) == true) {
         logger.info('get cookies');
         let showtutorial = false;
@@ -32,13 +48,13 @@ router.get('/', async function(req, res, next) {
             showtutorial = true;
         }
 
-        res.render('monitor', {
+        res.render(getMonitorEJS(req), {
             username: req.cookies.profile.username,
             showtutorial: showtutorial
         });
     }
     else {
-        res.render('monitor', {
+        res.render(getMonitorEJS(req), {
             username: 'unknown',
             showtutorial: false
         });

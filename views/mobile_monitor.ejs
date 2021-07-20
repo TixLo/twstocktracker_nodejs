@@ -4,6 +4,7 @@
     <title>股票回測分析工具</title>
     <meta name="description"  content="股票回測工具提供一個簡單，快速，甚至讓不用懂任何程式的人，都可以台灣股票的交易策略回測分析。另外此工具可以自動幫忙抓取所要的上市/上櫃股票歷史資料，讓每個人都可以擁有自己的股市投資必勝策略。" />
     <meta charset="UTF-8"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1" >
     <meta property="og:type" content="article" />
     <meta property="og:title" content="股票回測分析工具" />
     <meta property="og:description" content="股票回測工具提供一個簡單，快速，甚至讓不用懂任何程式的人，都可以做台灣股票的交易策略回測分析。另外此工具可以自動幫忙抓取所要的上市/上櫃股票歷史資料，讓每個人都可以擁有自己的股市投資必勝策略。" />
@@ -28,12 +29,12 @@
     <script src="https://d3js.org/d3.v4.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.18/js/bootstrap-select.min.js"></script>
     <script src="/js/common.js"></script>
-    <link rel="stylesheet" href="/css/techanStyle.css?v=13">
-    <% include banner %>
+    <link rel="stylesheet" href="/css/mobile_techanStyle.css?v=13">
+    <% include mobile_banner %>
 </head>
 <body>
     <% include modal %>
-    <% include tradingCondition %>
+    <% include mobile_tradingCondition %>
 
     <div class="accordion md-accordion" id="observedArea" role="tablist" aria-multiselectable="true">
         <div class="card">
@@ -48,7 +49,7 @@
             <div id="collapseObserved" class="collapse show" role="tabpanel" aria-labelledby="headingObserved"
                 data-parent="#observedArea">
             <div class="card-body">
-                <% include observedStocks %>
+                <% include mobile_observedStocks %>
             </div>
         </div>
     </div>
@@ -56,7 +57,7 @@
     <div class="card">
         <div class="card-header">股票線圖</div>
         <div class="card-body">
-            <% include candlestick %>
+            <% include mobile_candlestick %>
         </div>
     </div>
 
@@ -73,7 +74,7 @@
             <div id="collapseHistory" class="collapse show" role="tabpanel" aria-labelledby="headingHistory"
                 data-parent="#historyArea">
             <div class="card-body">
-                <% include tradeHistory %>
+                <% include mobile_tradeHistory %>
             </div>
         </div>
     </div>
@@ -82,7 +83,7 @@
     <% include footer %>
 </body>
 <script>
-var mobile = false;
+var mobile = true;
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
 <script src="/js/techan.js"></script>
@@ -292,14 +293,15 @@ var genMonitorStocksTable = function(rows) {
         //begin
         html += '<tr>\n';
 
-        // index
-        html += '<td>' + (i + 1) + '</td>\n';
+        // button
+        html += '<td>\n';
+        html += '<img class="Image pt-0 pb-0" '
+              + 'src="../images/details.png" width="26" height="26" '
+              + 'onClick="applySelectStock(\'' + s.stock + '\')">\n';
+        html += '</td>\n';
 
-        // stock no
-        html += '<td>' + s.stock + '</td>\n';
-
-        // stock name
-        html += '<td>' + s.name + '</td>\n';
+        // stock no & name
+        html += '<td>[' + s.stock + ']' + s.name + '</td>\n';
 
         // data count
         html += '<td>' + s.dataCount + '</td>\n';
@@ -315,13 +317,6 @@ var genMonitorStocksTable = function(rows) {
 
         // status
         html += '<td id="status_' + s.stock + '"></td>\n';
-
-        // button
-        html += '<td>\n';
-        html += '<img class="Image pt-0 pb-0" '
-              + 'src="../images/details.png" width="26" height="26" '
-              + 'onClick="applySelectStock(\'' + s.stock + '\')">\n';
-        html += '</td>\n';
 
         //end
         html += '</tr>\n';
